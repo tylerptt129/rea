@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { ROOT, inspectMacHost, inspectBundle, run, sha256File, verifyMac } from './verify-mac.mjs';
+import { ROOT, inspectMacHost, inspectBundle, run, sha256File, verifyMac, diagnosticText, failureDiagnostic } from './verify-mac.mjs';
 
 export function requireReleaseConfiguration(mode, environment = process.env) {
   if (!['developer', 'distribution'].includes(mode)) throw new Error('Release mode must be developer or distribution.');
@@ -63,7 +63,8 @@ export async function releaseMac({ mode = 'developer' } = {}) {
       await run('/usr/bin/xcrun', ['stapler', 'staple', app], { capture: true });
     }
     const verification = await verifyMac({ app, mode, reportPath: join(releaseDirectory, 'macos-verification/acceptance.json') });
-    if (verification.status !== 'passed' || (mode === 'distribution' && !verification.distributionReady)) throw new Error(`Mac acceptance failed: ${verification.error ?? 'required checks did not complete'}`);
+    report.verification = { status: verification.status, error: verification.error, checks: verification.checks, diagnostics: verification.diagnostics ?? [] };
+    if (verification.status !== 'passed' || (mode === 'distribution' && !verification.distributionReady)) throw Object.assign(new Error(`Mac acceptance failed: ${verification.error ?? 'required checks did not complete'}`), { diagnostics: verification.diagnostics ?? [] });
     const archive = join(releaseDirectory, artifactName(packageInfo.version, mode));
     await archiveApp(app, archive);
     report.artifact = { filename: artifactName(packageInfo.version, mode), sha256: await sha256File(archive), version: packageInfo.version, architecture: 'arm64' };
@@ -71,7 +72,7 @@ export async function releaseMac({ mode = 'developer' } = {}) {
     report.checks = verification.checks;
     report.distributionReady = verification.distributionReady;
     report.status = 'passed';
-  } catch (error) { report.error = error.message; }
+  } catch (error) { report.error = diagnosticText(error, 3000); report.diagnostics = error.diagnostics ?? [failureDiagnostic(error)]; }
   finally { if (temporary) await rm(temporary, { recursive: true, force: true }); }
   report.finishedAt = new Date().toISOString();
   await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n');

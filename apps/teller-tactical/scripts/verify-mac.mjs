@@ -85,20 +85,72 @@ export async function sha256File(path) {
   for await (const chunk of createReadStream(path)) hash.update(chunk);
   return hash.digest('hex');
 }
+/** Bounded printable diagnostics; annotation callers still escape %, CR and LF. */
+export function diagnosticText(value, limit = 2000, { multiline = false } = {}) {
+  let text = typeof value === 'string' ? value : typeof value?.message === 'string' ? value.message : '';
+  text = text.replace(/\u001b\][^\u0007\u001b]*(?:\u0007|\u001b\\)/g, '')
+    .replace(/(?:\u001b\[|\u009b)[0-?]*[ -/]*[@-~]/g, '')
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g, '');
+  text = multiline ? text.replace(/\r\n?/g, '\n') : text.replace(/\s+/g, ' ');
+  return text.trim().slice(-limit);
+}
+export function commandDiagnostic(result = {}) {
+  return { name: diagnosticText(result.command ?? 'subprocess', 120), exitCode: result.code ?? null, signal: result.signal ?? null,
+    stdoutTail: diagnosticText(result.stdout, 12_000, { multiline: true }), stderrTail: diagnosticText(result.stderr, 12_000, { multiline: true }) };
+}
+export function acceptanceDiagnostic(value, result, { kind, startedAt, readError } = {}) {
+  const currentRun = value && Number.isFinite(Date.parse(value.startedAt)) && Date.parse(value.startedAt) >= startedAt - 1000;
+  const acceptance = { currentRun: Boolean(currentRun), status: currentRun ? diagnosticText(value.status, 80) : value ? 'stale-report' : 'missing-report' };
+  if (readError) acceptance.readError = diagnosticText(readError);
+  if (currentRun) {
+    if (value.error) acceptance.error = { message: diagnosticText(value.error), ...(value.error?.stack ? { stack: diagnosticText(value.error.stack, 4000, { multiline: true }) } : {}) };
+    for (const key of ['blocker', 'cleanupError']) if (value[key]) acceptance[key] = diagnosticText(value[key]);
+    acceptance.failedChecks = (Array.isArray(value.checks) ? value.checks : []).filter(check => check.status !== 'passed').slice(-8).map(check => ({ name: diagnosticText(check.name, 160), status: diagnosticText(check.status, 40), code: diagnosticText(check.code, 100), message: diagnosticText(check.message) }));
+    for (const key of ['consoleErrors', 'pageErrors']) acceptance[key] = (Array.isArray(value[key]) ? value[key] : []).slice(-10).map(entry => diagnosticText(entry, 1200));
+    acceptance.sourceErrors = (Array.isArray(value.sourceErrors) ? value.sourceErrors : []).slice(-8).map(entry => ({ source: diagnosticText(entry.source, 120), message: diagnosticText(entry.message, 1200) }));
+    if (value.runtimeOnFailure && typeof value.runtimeOnFailure === 'object') acceptance.runtimeOnFailure = { platform: diagnosticText(value.runtimeOnFailure.platform, 30), arch: diagnosticText(value.runtimeOnFailure.arch, 30), gpu: Object.fromEntries(Object.entries(value.runtimeOnFailure.gpu ?? {}).slice(0, 30).map(([key, entry]) => [diagnosticText(key, 80), diagnosticText(entry, 100)])), windows: (Array.isArray(value.runtimeOnFailure.windows) ? value.runtimeOnFailure.windows : []).slice(0, 8).map(window => ({ destroyed: window.destroyed === true, loading: window.loading === true })) };
+    if (value.failureSnapshot && typeof value.failureSnapshot === 'object') acceptance.failureSnapshot = { frameLabel: diagnosticText(value.failureSnapshot.frameLabel, 200), paneLabels: (Array.isArray(value.failureSnapshot.paneLabels) ? value.failureSnapshot.paneLabels : []).slice(0, 4).map(entry => diagnosticText(entry, 300)), displayedFrames: (Array.isArray(value.failureSnapshot.displayedFrames) ? value.failureSnapshot.displayedFrames : []).slice(0, 4).map(frame => frame ? { id: diagnosticText(frame.id, 80), product: diagnosticText(frame.product, 120) } : null) };
+  }
+  return { stage: kind, ...(result ? { command: commandDiagnostic(result) } : {}), acceptance };
+}
+export function acceptanceFailure(diagnostic, fallback) {
+  const acceptance = diagnostic.acceptance ?? {};
+  const detail = acceptance.error?.message || acceptance.failedChecks?.find(check => check.message)?.message || acceptance.sourceErrors?.find(error => error.message)?.message || acceptance.blocker || acceptance.cleanupError || acceptance.readError || fallback || acceptance.status;
+  return diagnosticText(`${diagnostic.stage} failed${diagnostic.command ? ` (exit ${diagnostic.command.exitCode})` : ''}: ${detail}`, 2400);
+}
+export function failureDiagnostic(error, stage = 'command') {
+  return { stage, message: diagnosticText(error), ...(error.result ? { command: commandDiagnostic(error.result) } : {}) };
+}
+export async function checkAcceptanceReport(path, result, options) {
+  let value, readError;
+  try { value = JSON.parse(await readFile(path, 'utf8')); } catch (error) { readError = error; }
+  const diagnostic = acceptanceDiagnostic(value, result, { ...options, readError });
+  try {
+    const accepted = requireAcceptance(value, options);
+    if (result && result.code !== 0) throw new Error(`Helper exited ${result.code} despite its report status.`);
+    return accepted;
+  } catch (error) {
+    throw Object.assign(new Error(acceptanceFailure(diagnostic, error.message)), { diagnostics: [diagnostic] });
+  }
+}
 export function run(command, args, { cwd = ROOT, env = process.env, capture = false, allowFailure = false } = {}) {
   return new Promise((resolveResult, reject) => {
-    const child = spawn(command, args, { cwd, env, stdio: capture ? ['ignore', 'pipe', 'pipe'] : 'inherit' });
+    // Always retain command output for failure reports; capture controls live streaming only.
+    const child = spawn(command, args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '', stderr = '', bytes = 0, exceeded = false;
-    if (capture) {
-      const record = (chunk, target) => { bytes += chunk.length; if (bytes > 4 * 1024 * 1024) { exceeded = true; child.kill('SIGTERM'); return; } if (target === 'out') stdout += chunk; else stderr += chunk; };
-      child.stdout.on('data', chunk => record(chunk, 'out'));
-      child.stderr.on('data', chunk => record(chunk, 'err'));
-    }
-    child.once('error', reject);
-    child.once('close', code => {
-      if (exceeded) return reject(new Error(`${command} output exceeded its safety bound.`));
-      const result = { code, stdout, stderr, output: stdout + stderr };
-      if (code !== 0 && !allowFailure) reject(Object.assign(new Error(`${command} failed with exit ${code}; inspect the release Mac's command diagnostics.`), { result }));
+    const record = (chunk, target) => {
+      bytes += chunk.length;
+      if (bytes > 4 * 1024 * 1024) { exceeded = true; child.kill('SIGTERM'); return; }
+      if (target === 'out') { stdout += chunk; if (!capture) process.stdout.write(chunk); }
+      else { stderr += chunk; if (!capture) process.stderr.write(chunk); }
+    };
+    child.stdout.on('data', chunk => record(chunk, 'out'));
+    child.stderr.on('data', chunk => record(chunk, 'err'));
+    child.once('error', error => reject(Object.assign(error, { result: { command, code: null, stdout, stderr } })));
+    child.once('close', (code, signal) => {
+      const result = { command, code, signal, stdout, stderr, output: stdout + stderr };
+      if (exceeded) return reject(Object.assign(new Error(`${command} output exceeded its safety bound.`), { result }));
+      if (code !== 0 && !allowFailure) reject(Object.assign(new Error(`${command} failed with exit ${code}; ${diagnosticText(stderr || stdout, 1600) || 'no command output was returned'}`), { result }));
       else resolveResult(result);
     });
   });
@@ -139,21 +191,21 @@ export async function verifyMac({ app = join(ROOT, 'release/Teller Tactical-darw
     const before = await inspectBundle(app, { host, mode }); report.bundle = before;
     const source = await run('npm', ['test'], { capture: true, allowFailure: true });
     await writeFile(join(directory, 'unit-tests.txt'), source.output);
-    if (source.code !== 0) throw new Error('Source tests failed; see unit-tests.txt for current-run diagnostics.');
+    if (source.code !== 0) { report.checks.push({ name: 'source-tests', status: 'failed' }); throw Object.assign(new Error(`Source tests failed: ${diagnosticText(source.stderr || source.stdout, 1600)}`), { diagnostics: [failureDiagnostic({ message: 'Source tests failed', result: source }, 'source-tests')] }); }
     const count = /(?:#|ℹ)\s*tests\s+(\d+)/.exec(source.output)?.[1];
     if (!count || Number(count) < 1) throw new Error('Source test runner executed no tests.');
     report.checks.push({ name: 'source-tests', status: 'passed', tests: Number(count) });
     const fixturePath = join(directory, 'packaged-fixture.json');
-    await run(process.execPath, [join(ROOT, 'scripts/packaged-smoke.mjs'), before.executable], { env: { ...process.env, TELLER_PACKAGED_REPORT: fixturePath } });
-    report.checks.push({ name: 'packaged-fixture', status: 'passed', ...requireAcceptance(JSON.parse(await readFile(fixturePath, 'utf8')), { kind: 'packaged-fixture', startedAt }) });
+    const fixtureCommand = await run(process.execPath, [join(ROOT, 'scripts/packaged-smoke.mjs'), before.executable], { capture: true, allowFailure: true, env: { ...process.env, TELLER_PACKAGED_REPORT: fixturePath } });
+    report.checks.push({ name: 'packaged-fixture', status: 'passed', ...await checkAcceptanceReport(fixturePath, fixtureCommand, { kind: 'packaged-fixture', startedAt }) });
     const { runLiveSmoke } = await import('./live-smoke.mjs');
     const livePath = join(directory, 'backend-live.json');
-    const live = await runLiveSmoke({ reportPath: livePath });
-    report.checks.push({ name: 'backend-live', status: 'passed', ...requireAcceptance(live, { kind: 'backend-live', startedAt }) });
+    await runLiveSmoke({ reportPath: livePath });
+    report.checks.push({ name: 'backend-live', status: 'passed', ...await checkAcceptanceReport(livePath, undefined, { kind: 'backend-live', startedAt }) });
     const packagedLivePath = join(directory, 'packaged-live.json');
     await access(join(ROOT, 'scripts/packaged-live-smoke.mjs'));
-    await run(process.execPath, [join(ROOT, 'scripts/packaged-live-smoke.mjs'), before.executable], { env: { ...process.env, TELLER_PACKAGED_LIVE_REPORT: packagedLivePath } });
-    report.checks.push({ name: 'packaged-live', status: 'passed', ...requireAcceptance(JSON.parse(await readFile(packagedLivePath, 'utf8')), { kind: 'packaged-live', startedAt }) });
+    const liveCommand = await run(process.execPath, [join(ROOT, 'scripts/packaged-live-smoke.mjs'), before.executable], { capture: true, allowFailure: true, env: { ...process.env, TELLER_PACKAGED_LIVE_REPORT: packagedLivePath } });
+    report.checks.push({ name: 'packaged-live', status: 'passed', ...await checkAcceptanceReport(packagedLivePath, liveCommand, { kind: 'packaged-live', startedAt }) });
     const after = await inspectBundle(app, { host, mode });
     if (after.hashes.executable !== before.hashes.executable || after.hashes.appAsar !== before.hashes.appAsar) throw new Error('Application bytes changed during acceptance; rebuild and verify the actual final package.');
     if (mode === 'distribution') {
@@ -164,7 +216,12 @@ export async function verifyMac({ app = join(ROOT, 'release/Teller Tactical-darw
       report.checks.push({ name: 'notarization-staple-and-Gatekeeper', status: 'passed' });
     }
     report.status = 'passed';
-  } catch (error) { report.error = error.message; }
+  } catch (error) {
+    report.error = diagnosticText(error, 2400);
+    report.diagnostics = error.diagnostics ?? [failureDiagnostic(error)];
+    const stage = report.diagnostics[0]?.stage;
+    if (stage && !report.checks.some(check => check.name === stage && check.status === 'failed')) report.checks.push({ name: stage, status: 'failed', message: report.error });
+  }
   report.finishedAt = new Date().toISOString();
   await writeFile(output, JSON.stringify(report, null, 2) + '\n');
   return report;

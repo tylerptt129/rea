@@ -156,6 +156,7 @@ try {
 } catch (error) {
   report.status = 'failed'; report.error = { message: error.message, stack: error.stack };
   if (application) {
+    try { report.runtimeOnFailure = await application.evaluate(({app,BrowserWindow})=>({platform:process.platform,arch:process.arch,gpu:app.getGPUFeatureStatus(),windows:BrowserWindow.getAllWindows().map(w=>({destroyed:w.isDestroyed(),loading:w.webContents.isLoading(),url:w.webContents.getURL()}))})); } catch {}
     try {
       const windows = application.windows();
       if (windows.length) {

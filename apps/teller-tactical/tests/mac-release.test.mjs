@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { APP_IDENTIFIER, requireMacHost, machoArchitectures, requireBundleInfo, signatureSummary, requireGatekeeper, requireAcceptance, parseMacArguments } from '../scripts/verify-mac.mjs';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { APP_IDENTIFIER, requireMacHost, machoArchitectures, requireBundleInfo, signatureSummary, requireGatekeeper, requireAcceptance, parseMacArguments, diagnosticText, commandDiagnostic, acceptanceDiagnostic, checkAcceptanceReport, run } from '../scripts/verify-mac.mjs';
 import { artifactName, parseReleaseArguments, requireAcceptedNotarization, requireReleaseConfiguration } from '../scripts/release-mac.mjs';
 
 const host = { platform: 'darwin', arch: 'arm64', version: '15.6.1' };
@@ -100,4 +102,70 @@ test('Mac workflow requires manual dispatch, real ARM64 and fail-closed gates be
   assert.match(workflow, /node scripts\/release-mac\.mjs/);
   assert.match(workflow, /if: success\(\)/);
   assert.doesNotMatch(workflow, /secrets\.[A-Z_]*(?:PASSWORD|TOKEN|CERTIFICATE)/);
+});
+
+
+test('failure diagnostics retain bounded command tails while removing terminal/control injection', () => {
+  const hostile = '\u001b[31mGPU failed\u001b[0m\r\n::error::forged\u0000\u001b]0;window-title\u0007 %0Aend';
+  const summary = diagnosticText(hostile);
+  assert.match(summary, /GPU failed/);
+  assert.doesNotMatch(summary, /[\u0000-\u001f\u007f]/);
+  assert.doesNotMatch(summary, /window-title/);
+  const rootEscaped = summary.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+  assert.match(rootEscaped, /%250Aend/, 'pre-encoded annotations remain literal after root escaping');
+  const command = commandDiagnostic({ command: 'node', code: 7, signal: null, stdout: 'a'.repeat(50_000), stderr: `b`.repeat(50_000) + '\nACTUAL FAILURE' });
+  assert.equal(command.exitCode, 7);
+  assert.ok(command.stdoutTail.length <= 12_000 && command.stderrTail.length <= 12_000);
+  assert.match(command.stderrTail, /ACTUAL FAILURE$/);
+});
+
+test('failed current helper report is read after nonzero exit and retains actual error/runtime evidence', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'teller-mac-diagnostic-'));
+  try {
+    const path = join(directory, 'helper.json');
+    const report = { ...evidence, status: 'failed', error: { message: '\u001b[31mWebGL2 unavailable\u001b[0m', stack: 'Error: WebGL2 unavailable\n at launch:42' }, consoleErrors: ['GPU context failed'], pageErrors: ['render failed'], checks: [{ name: 'real-image', status: 'failed', message: 'No accepted raster pixels' }], runtimeOnFailure: { platform: 'darwin', arch: 'arm64', gpu: { webgl: 'disabled_off' }, windows: [{ loading: false, destroyed: false, url: 'must-not-copy-unknown-runtime-value' }] }, environment: { token: 'must-not-copy-environment' } };
+    await writeFile(path, JSON.stringify(report));
+    await assert.rejects(checkAcceptanceReport(path, { command: 'node', code: 1, stdout: 'helper starting', stderr: 'Electron exited before ready' }, { kind: 'packaged-fixture', startedAt: current }), error => {
+      assert.match(error.message, /WebGL2 unavailable/);
+      const diagnostic = error.diagnostics[0];
+      assert.equal(diagnostic.command.exitCode, 1);
+      assert.equal(diagnostic.acceptance.currentRun, true);
+      assert.equal(diagnostic.acceptance.runtimeOnFailure.gpu.webgl, 'disabled_off');
+      assert.deepEqual(diagnostic.acceptance.pageErrors, ['render failed']);
+      assert.equal(diagnostic.acceptance.failedChecks[0].name, 'real-image');
+      assert.doesNotMatch(JSON.stringify(diagnostic), /must-not-copy/);
+      assert.doesNotMatch(error.message, /[\u0000-\u001f]/);
+      return true;
+    });
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test('old/missing reports never replace the current command failure with stale evidence', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'teller-mac-stale-diagnostic-'));
+  try {
+    const path = join(directory, 'helper.json');
+    await writeFile(path, JSON.stringify({ ...evidence, status: 'failed', startedAt: new Date(current - 60_000).toISOString(), error: 'OLD failure must not be reused' }));
+    await assert.rejects(checkAcceptanceReport(path, { command: 'node', code: 1, stderr: 'CURRENT spawn failed' }, { kind: 'packaged-live', startedAt: current }), error => {
+      assert.equal(error.diagnostics[0].acceptance.status, 'stale-report');
+      assert.match(error.diagnostics[0].command.stderrTail, /CURRENT spawn failed/);
+      assert.doesNotMatch(JSON.stringify(error.diagnostics), /OLD failure/);
+      return true;
+    });
+    await assert.rejects(checkAcceptanceReport(join(directory, 'missing.json'), { command: 'node', code: 1, stderr: 'Current launch error' }, { kind: 'packaged-live', startedAt: current }), error => {
+      assert.equal(error.diagnostics[0].acceptance.status, 'missing-report');
+      assert.match(error.diagnostics[0].acceptance.readError, /ENOENT/);
+      return true;
+    });
+    await writeFile(path, JSON.stringify(evidence));
+    await assert.rejects(checkAcceptanceReport(path, { command: 'node', code: 1 }, { kind: 'packaged-live', startedAt: current }), /Helper exited 1 despite its report status/);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test('actual failed subprocess exit and stderr remain attached rather than collapsing to generic exit1', async () => {
+  await assert.rejects(run(process.execPath, ['-e', 'require("node:fs").writeSync(2,"Specific native-launch failure\\n"); process.exit(17)'], { capture: true }), error => {
+    assert.equal(error.result.code, 17);
+    assert.match(error.result.stderr, /Specific native-launch failure/);
+    assert.match(error.message, /Specific native-launch failure/);
+    return true;
+  });
 });
