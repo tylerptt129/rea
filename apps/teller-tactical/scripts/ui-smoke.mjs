@@ -122,6 +122,18 @@ try {
     report.canvas = image;
     assert.ok(image.colors > 10, `Expected rendered cartography/weather colors, saw ${image.colors}`);
   });
+  await check('small native-size windows keep real timeline clicks unobstructed', async () => {
+    await page.setViewportSize({width:980,height:640});
+    const before=await displayed();
+    const button=page.locator('#prev');
+    assert.equal(await button.evaluate(element=>{const r=element.getBoundingClientRect();return element.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),true,'A floating panel must not cover the timeline');
+    await button.click();
+    await page.waitForFunction(id=>window.__tellerTest.getMaps()[0].displayed?.frame.id!==id,before.frameId);
+    await waitDisplayed();
+    await page.screenshot({path:join(artifacts,'fixture-small-window.png')});
+    await page.setViewportSize({width:1440,height:1000});
+    await waitDisplayed();
+  });
   await check('frame scrubbing changes displayed time and actual raster pixels', async () => {
     const before = await displayed(), hashBefore = await canvasHash();
     await setTimeline(0);
