@@ -73,7 +73,8 @@ jobs:
               for entry in value.get('diagnostics',[])[-2:]:
                   command=entry.get('command',{})
                   parts.extend([command.get('stderrTail','')[-1800:],command.get('stdoutTail','')[-1800:]])
-              parts.extend(str(item) for item in value.get('consoleErrors',[])[:3])
+              parts.extend(str(item) for item in value.get('consoleErrors',[])[:6])
+              if value.get('resourceFailures'):parts.append(str(value['resourceFailures'][:8]))
               snap=value.get('failureSnapshot') or {}
               if snap:parts.append(str({'frame':snap.get('frameLabel'),'panes':snap.get('paneLabels')}))
               runtime=value.get('runtimeOnFailure') or {}
