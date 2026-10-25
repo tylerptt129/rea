@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { ROOT, inspectMacHost, inspectBundle, run, sha256File, verifyMac, diagnosticText, failureDiagnostic } from './verify-mac.mjs';
+import { ROOT, inspectMacHost, inspectBundle, run, sha256File, verifyMac, diagnosticText, failureDiagnostic, sourceQualityFields } from './verify-mac.mjs';
 
 export function requireReleaseConfiguration(mode, environment = process.env) {
   if (!['developer', 'distribution'].includes(mode)) throw new Error('Release mode must be developer or distribution.');
@@ -31,7 +31,7 @@ async function archiveApp(app, output) {
   await run('/usr/bin/unzip', ['-t', output], { capture: true });
 }
 export async function releaseMac({ mode = 'developer' } = {}) {
-  const report = { status: 'failed', startedAt: new Date().toISOString(), mode, distributionReady: false, scope: 'Native Apple Silicon release gates; no remote repository publication or deployment.' };
+  const report = { status: 'failed', startedAt: new Date().toISOString(), mode, distributionReady: false, sourceHealth: 'not-yet-verified', qualityWarnings: [], scope: 'Native Apple Silicon release gates; no remote repository publication or deployment.' };
   const releaseDirectory = join(ROOT, 'release'), reportPath = join(releaseDirectory, 'macos-release.json');
   await mkdir(releaseDirectory, { recursive: true });
   let temporary;
@@ -63,7 +63,9 @@ export async function releaseMac({ mode = 'developer' } = {}) {
       await run('/usr/bin/xcrun', ['stapler', 'staple', app], { capture: true });
     }
     const verification = await verifyMac({ app, mode, reportPath: join(releaseDirectory, 'macos-verification/acceptance.json') });
-    report.verification = { status: verification.status, error: verification.error, checks: verification.checks, diagnostics: verification.diagnostics ?? [] };
+    const quality = sourceQualityFields(verification);
+    Object.assign(report, quality);
+    report.verification = { status: verification.status, error: verification.error, checks: verification.checks, diagnostics: verification.diagnostics ?? [], ...quality };
     if (verification.status !== 'passed' || (mode === 'distribution' && !verification.distributionReady)) throw Object.assign(new Error(`Mac acceptance failed: ${verification.error ?? 'required checks did not complete'}`), { diagnostics: verification.diagnostics ?? [] });
     const archive = join(releaseDirectory, artifactName(packageInfo.version, mode));
     await archiveApp(app, archive);

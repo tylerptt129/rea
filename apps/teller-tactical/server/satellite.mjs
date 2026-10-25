@@ -1,5 +1,6 @@
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
 import { parseDuration } from '../src/domain.mjs';
+import { GIBS_COLORMAP_ROLE } from './legends.mjs';
 
 export const GIBS_CAPABILITIES = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/wmts.cgi?SERVICE=WMTS&REQUEST=GetCapabilities';
 const GIBS_ORIGIN = 'https://gibs.earthdata.nasa.gov';
@@ -184,6 +185,11 @@ function projectCapabilities(contents, { now = Date.now(), retrievedAt = new Dat
     let legendRemote;
     const legendCandidate = list(style.LegendURL).find(value => ['image/png','image/jpeg'].includes(value['@_format']))?.['@_href'];
     if (legendCandidate) { try { legendRemote = safeGibsUrl(legendCandidate); } catch { /* Untrusted legend omitted. */ } }
+    let colorMapRemote;
+    for(const metadata of list(layer.Metadata)){
+      if(metadata['@_role']!==GIBS_COLORMAP_ROLE)continue;
+      try{colorMapRemote=safeGibsUrl(metadata['@_href']);break;}catch{/* Invalid or insecure source metadata is not a legend. */}
+    }
     const id = `gibs-${layerId.replace(/[^A-Za-z0-9_-]/g,'-').toLowerCase()}`;
     products.push({
       id, name: definition.name, kind: 'satellite', source: 'NASA GIBS / NOAA GOES ABI', sourceUrl: 'https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-standard-products/global-imagery-browse-services',
@@ -194,7 +200,9 @@ function projectCapabilities(contents, { now = Date.now(), retrievedAt = new Dat
       numericalProbe: false, channel: definition.channel, deliveredResolutionKm: definition.deliveredResolutionKm,
       minZoom: Math.min(...Object.keys(matrices).map(Number)), maxZoom: Math.max(...Object.keys(matrices).map(Number)),
       notes: ['NASA documents approximately 40-minute latency; this is not a low-latency tactical feed.', 'Rendered browse imagery; calibrated source-precision numerical probing is unavailable.', ...(definition.daylightOnly ? ['Visible imagery depends on daylight and illumination.'] : []), 'A metadata-listed frame may still fail image retrieval; availability and loaded tiles are tracked separately.'],
-      ...(legendRemote ? { legendUrl: `/api/legend/${id}`, legendRemote } : {}),
+      ...(legendRemote || colorMapRemote ? {legendUrl:`/api/legend/${id}`} : {}),
+      ...(legendRemote ? {legendRemote} : {}),
+      ...(colorMapRemote ? {colorMapRemote,legendKind:'source-colormap'} : {}),
       wmts: { template, matrixSet: text(link.TileMatrixSet), style: identifier(style), format: resource['@_format'], matrices },
     });
   }

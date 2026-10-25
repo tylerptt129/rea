@@ -66,6 +66,30 @@ export function requireGatekeeper({ code, output }) {
   if (code !== 0 || !/: accepted\s*$/m.test(output) || !/^source=Notarized Developer ID\s*$/m.test(output)) throw new Error('Gatekeeper did not accept a notarized Developer ID application. No security override is permitted.');
   return { accepted: true, source: 'Notarized Developer ID' };
 }
+/** Source availability is separate from package trust and behavioral acceptance. */
+export function sourceQualityFields(value, { required = false } = {}) {
+  const health = value?.sourceHealth;
+  if (health === undefined && value?.qualityWarnings === undefined && !required) return { sourceHealth: 'not-yet-verified', qualityWarnings: [] };
+  const completed = ['within-startup-budgets', 'degraded'];
+  const allowed = required ? completed : [...completed, 'not-yet-verified', 'fresh-startup-verified'];
+  if (!allowed.includes(health) || !Array.isArray(value?.qualityWarnings) || value.qualityWarnings.length > 100) throw new Error('Packaged live acceptance omitted a complete source-health/quality-warning result.');
+  if (health === 'degraded' && value.qualityWarnings.length === 0) throw new Error('Degraded source health requires meaningful aged-source warnings; it cannot pass as unqualified fresh success.');
+  if (health !== 'degraded' && value.qualityWarnings.length) throw new Error('A fresh/unknown source-health label contradicts retained quality warnings.');
+  const warnings = value.qualityWarnings.map(warning => {
+    if (!warning || typeof warning.productId !== 'string' || !warning.productId || typeof warning.sourceUrl !== 'string' || !warning.sourceUrl
+      || !Number.isFinite(Date.parse(warning.observationTime)) || !Number.isFinite(Date.parse(warning.asOf))
+      || !Object.hasOwn(warning, 'retrievedAt') || (warning.retrievedAt !== null && !Number.isFinite(Date.parse(warning.retrievedAt)))
+      || !Number.isFinite(warning.ageMinutes) || !Number.isFinite(warning.budgetMinutes) || warning.budgetMinutes <= 0 || warning.ageMinutes <= warning.budgetMinutes
+      || warning.freshness !== 'aged' || warning.sourceHealth !== 'degraded'
+      || typeof warning.uiStatusLabel !== 'string' || !/(?:^|\s|\/)(?:STALE|UNAVAILABLE)(?:\s|\/|$)/.test(warning.uiStatusLabel)
+      || typeof warning.uiStatus !== 'string' || !warning.uiStatus) throw new Error('Degraded source warning lacks source identity, exact times, age/budget, retrieval fact or an explicit visible stale/unavailable state.');
+    return { productId: warning.productId, sourceProductId: warning.sourceProductId ?? null, sourceUrl: warning.sourceUrl,
+      observationTime: warning.observationTime, retrievedAt: warning.retrievedAt, asOf: warning.asOf,
+      ageMinutes: warning.ageMinutes, budgetMinutes: warning.budgetMinutes, freshness: 'aged', sourceHealth: 'degraded',
+      uiStatusLabel: warning.uiStatusLabel, uiStatus: warning.uiStatus };
+  });
+  return { sourceHealth: health, qualityWarnings: warnings };
+}
 export function requireAcceptance(report, { kind, startedAt }) {
   if (report?.status !== 'passed' || !Array.isArray(report.checks) || !report.checks.length || report.checks.some(check => check.status !== 'passed')) throw new Error(`${kind} acceptance did not complete with meaningful passing checks.`);
   if (!Number.isFinite(Date.parse(report.startedAt)) || Date.parse(report.startedAt) < startedAt - 1000) throw new Error(`${kind} result is not from the current validation run.`);
@@ -78,7 +102,7 @@ export function requireAcceptance(report, { kind, startedAt }) {
     if (report.consoleErrors?.length || report.pageErrors?.length) throw new Error(`${kind} contains JavaScript errors.`);
     if (kind === 'packaged-live' && report.fixture !== false) throw new Error('Packaged live acceptance used synthetic or unmarked data.');
   }
-  return { passed: true, checks: report.checks.length, scope: kind };
+  return { passed: true, checks: report.checks.length, scope: kind, ...(kind === 'packaged-live' ? sourceQualityFields(report, { required: true }) : {}) };
 }
 export async function sha256File(path) {
   const hash = createHash('sha256');
@@ -103,6 +127,7 @@ export function acceptanceDiagnostic(value, result, { kind, startedAt, readError
   const acceptance = { currentRun: Boolean(currentRun), status: currentRun ? diagnosticText(value.status, 80) : value ? 'stale-report' : 'missing-report' };
   if (readError) acceptance.readError = diagnosticText(readError);
   if (currentRun) {
+    if (kind === 'packaged-live') { try { Object.assign(acceptance, sourceQualityFields(value)); } catch (error) { acceptance.sourceQualityError = diagnosticText(error); } }
     if (value.error) acceptance.error = { message: diagnosticText(value.error), ...(value.error?.stack ? { stack: diagnosticText(value.error.stack, 4000, { multiline: true }) } : {}) };
     for (const key of ['blocker', 'cleanupError']) if (value[key]) acceptance[key] = diagnosticText(value[key]);
     acceptance.failedChecks = (Array.isArray(value.checks) ? value.checks : []).filter(check => check.status !== 'passed').slice(-8).map(check => ({ name: diagnosticText(check.name, 160), status: diagnosticText(check.status, 40), code: diagnosticText(check.code, 100), message: diagnosticText(check.message) }));
@@ -130,7 +155,9 @@ export async function checkAcceptanceReport(path, result, options) {
     if (result && result.code !== 0) throw new Error(`Helper exited ${result.code} despite its report status.`);
     return accepted;
   } catch (error) {
-    throw Object.assign(new Error(acceptanceFailure(diagnostic, error.message)), { diagnostics: [diagnostic] });
+    let sourceQuality;
+    if (options.kind === 'packaged-live') { try { sourceQuality = sourceQualityFields(value); } catch {} }
+    throw Object.assign(new Error(acceptanceFailure(diagnostic, error.message)), { diagnostics: [diagnostic], ...(sourceQuality ? { sourceQuality } : {}) });
   }
 }
 export function run(command, args, { cwd = ROOT, env = process.env, capture = false, allowFailure = false } = {}) {
@@ -183,7 +210,7 @@ export async function inspectBundle(app, { host, mode = 'developer' }) {
 }
 export async function verifyMac({ app = join(ROOT, 'release/Teller Tactical-darwin-arm64/Teller Tactical.app'), mode = 'developer', reportPath = join(ROOT, 'release/macos-verification/acceptance.json') } = {}) {
   const startedAt = Date.now(), output = resolve(reportPath), directory = dirname(output);
-  const report = { status: 'failed', startedAt: new Date(startedAt).toISOString(), mode, host: { platform: process.platform, arch: process.arch }, checks: [], distributionReady: false, scope: 'Native Apple Silicon package, source unit checks, fixture workflow, public-source live checks and actual packaged live weather. Not a claim that all planned advanced features are implemented.' };
+  const report = { status: 'failed', startedAt: new Date(startedAt).toISOString(), mode, host: { platform: process.platform, arch: process.arch }, checks: [], distributionReady: false, sourceHealth: 'not-yet-verified', qualityWarnings: [], scope: 'Native Apple Silicon package, source unit checks, fixture workflow, public-source live checks and actual packaged live weather. Not a claim that all planned advanced features are implemented.' };
   await mkdir(directory, { recursive: true });
   try {
     if (!['developer', 'distribution'].includes(mode)) throw new Error('Mac mode must be developer or distribution.');
@@ -205,7 +232,9 @@ export async function verifyMac({ app = join(ROOT, 'release/Teller Tactical-darw
     const packagedLivePath = join(directory, 'packaged-live.json');
     await access(join(ROOT, 'scripts/packaged-live-smoke.mjs'));
     const liveCommand = await run(process.execPath, [join(ROOT, 'scripts/packaged-live-smoke.mjs'), before.executable], { capture: true, allowFailure: true, env: { ...process.env, TELLER_PACKAGED_LIVE_REPORT: packagedLivePath } });
-    report.checks.push({ name: 'packaged-live', status: 'passed', ...await checkAcceptanceReport(packagedLivePath, liveCommand, { kind: 'packaged-live', startedAt }) });
+    const liveAcceptance = await checkAcceptanceReport(packagedLivePath, liveCommand, { kind: 'packaged-live', startedAt });
+    report.checks.push({ name: 'packaged-live', status: 'passed', ...liveAcceptance });
+    Object.assign(report, sourceQualityFields(liveAcceptance, { required: true }));
     const after = await inspectBundle(app, { host, mode });
     if (after.hashes.executable !== before.hashes.executable || after.hashes.appAsar !== before.hashes.appAsar) throw new Error('Application bytes changed during acceptance; rebuild and verify the actual final package.');
     if (mode === 'distribution') {
@@ -219,6 +248,7 @@ export async function verifyMac({ app = join(ROOT, 'release/Teller Tactical-darw
   } catch (error) {
     report.error = diagnosticText(error, 2400);
     report.diagnostics = error.diagnostics ?? [failureDiagnostic(error)];
+    if (error.sourceQuality) Object.assign(report, error.sourceQuality);
     const stage = report.diagnostics[0]?.stage;
     if (stage && !report.checks.some(check => check.name === stage && check.status === 'failed')) report.checks.push({ name: stage, status: 'failed', message: report.error });
   }
@@ -238,7 +268,7 @@ export function parseMacArguments(args) {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const report = await verifyMac(parseMacArguments(process.argv.slice(2)));
-    console.log(JSON.stringify({ status: report.status, mode: report.mode, host: report.host, checks: report.checks, distributionReady: report.distributionReady, error: report.error }, null, 2));
+    console.log(JSON.stringify({ status: report.status, mode: report.mode, host: report.host, checks: report.checks, distributionReady: report.distributionReady, sourceHealth: report.sourceHealth, qualityWarnings: report.qualityWarnings, error: report.error }, null, 2));
     process.exitCode = report.status === 'passed' ? 0 : 1;
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }

@@ -4,6 +4,7 @@ import { resolve, dirname, extname, sep, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { homedir } from 'node:os';
 import { WeatherClient } from './http.mjs';
+import { NativeRadarProbe } from './radar-probe.mjs';
 import { ProductCatalog, fixturePng } from './catalog.mjs';
 import { fetchPoint, fetchSites, fixturePoint, fixtureSites } from './weather.mjs';
 
@@ -31,10 +32,11 @@ async function bodyJson(request, limit = 32 * 1024) {
   try { const value = JSON.parse(body); if (!value || Array.isArray(value) || typeof value !== 'object') throw new Error(); return value; }
   catch { throw Object.assign(new Error('Settings must be a JSON object'), { status: 400 }); }
 }
-export async function startServer({ port = 0, dataDir = process.env.TELLER_DATA_DIR ?? join(homedir(), '.teller-tactical'), fixture = process.env.TELLER_FIXTURE === '1', host = '127.0.0.1', client: suppliedClient, distDir = join(root, 'dist') } = {}) {
+export async function startServer({ port = 0, dataDir = process.env.TELLER_DATA_DIR ?? join(homedir(), '.teller-tactical'), fixture = process.env.TELLER_FIXTURE === '1', host = '127.0.0.1', client: suppliedClient, radarProbe: suppliedRadarProbe, distDir = join(root, 'dist') } = {}) {
   if (host !== '127.0.0.1') throw new Error('The weather gateway binds only to 127.0.0.1');
   await mkdir(dataDir, { recursive: true, mode: 0o700 });
   const client = suppliedClient ?? new WeatherClient({ directory: join(dataDir, 'cache') });
+  let radarProbe = suppliedRadarProbe;
   const catalog = new ProductCatalog(client, { fixture, statePath: join(dataDir, 'last-catalog.json') });
   const settingsPath = join(dataDir, 'settings.json');
   let settings = {};
@@ -60,7 +62,7 @@ export async function startServer({ port = 0, dataDir = process.env.TELLER_DATA_
       if (url.pathname === '/api/health' && method === 'GET') return json(response, 200, { ok: true, fixture, version: '0.1.0', now: new Date().toISOString() });
       if (url.pathname === '/api/catalog' && method === 'GET') return json(response, 200, await catalog.get());
       if (url.pathname === '/api/refresh' && method === 'POST') { await client.cache.expireMetadata(); return json(response, 200, await catalog.get({ force: true })); }
-      if (url.pathname === '/api/diagnostics' && method === 'GET') return json(response, 200, { ...client.diagnostics(), fixture, uptimeSeconds: process.uptime(), memory: process.memoryUsage(), capabilities: { radar: 'IEM CONUS mosaic imagery', satellite: 'NASA GIBS capabilities-driven visible/IR; source availability and timestamp verification required', numericalRadarProbe: false } });
+      if (url.pathname === '/api/diagnostics' && method === 'GET') return json(response, 200, { ...client.diagnostics(), fixture, uptimeSeconds: process.uptime(), memory: process.memoryUsage(), capabilities: { radar: 'IEM CONUS mosaic imagery', satellite: 'NASA GIBS capabilities-driven visible/IR; source availability and timestamp verification required', numericalRadarProbe: 'Source-native quantized IEM N0Q composite indices; unsupported imagery is never color-inverted' } });
       if (url.pathname === '/api/settings' && method === 'GET') return json(response, 200, settings);
       if (url.pathname === '/api/settings' && method === 'PUT') {
         const next = await bodyJson(request);
@@ -75,7 +77,13 @@ export async function startServer({ port = 0, dataDir = process.env.TELLER_DATA_
       }
       if (url.pathname === '/api/probe' && method === 'GET') {
         const { latitude, longitude } = pointCoordinates(url.searchParams);
-        return json(response, 200, { available: false, value: null, units: null, reason: 'This provider supplies rendered raster images. Source-precision numerical values cannot be inferred reliably from image colors.', latitude, longitude });
+        const productId = url.searchParams.get('productId'), frameId = url.searchParams.get('frameId');
+        if (fixture || productId !== 'iem-n0q') return json(response, 200, { available: false, fixture, value: null, units: null, reason: fixture ? 'Synthetic fixture images are not quantitative radar observations.' : 'Native quantitative probing is supported only for the IEM N0Q provider composite; rendered colors are never inverted.', latitude, longitude });
+        await catalog.get();
+        const product = catalog.products.get(productId), frame = product?.frames.find(frame => frame.id === frameId);
+        if (!frame) return json(response, 404, { error: 'The requested probe frame is not in the source-advertised catalog. Select an available frame.' });
+        radarProbe ??= new NativeRadarProbe({ client });
+        return json(response, 200, { ...await radarProbe.sample({ frame, latitude, longitude, signal: controller.signal }), fixture: false });
       }
       const weatherTile = /^\/api\/tiles\/([A-Za-z0-9_-]{1,100})\/([A-Za-z0-9_-]{1,32})\/(\d+)\/(\d+)\/(\d+)\.png$/.exec(url.pathname);
       const basemap = /^\/api\/basemap\/(dark|light)\/(\d+)\/(\d+)\/(\d+)\.png$/.exec(url.pathname);
@@ -119,7 +127,7 @@ export async function startServer({ port = 0, dataDir = process.env.TELLER_DATA_
   });
   server.requestTimeout = 30_000; server.headersTimeout = 10_000;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, host, () => { boundPort = server.address().port; server.removeListener('error', reject); resolve(); }); });
-  return { server, port: boundPort, url: `http://127.0.0.1:${boundPort}`, close: async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await client.close(); } };
+  return { server, port: boundPort, url: `http://127.0.0.1:${boundPort}`, close: async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await radarProbe?.close(); await client.close(); } };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

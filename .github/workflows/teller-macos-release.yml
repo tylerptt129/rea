@@ -54,6 +54,11 @@ jobs:
           npm exec install-electron
       - name: Build natively, sign developer bundle, and test real packaged weather
         run: node scripts/release-mac.mjs --mode developer
+      - name: Verify local source installation without changing OS protections
+        run: |
+          set -euo pipefail
+          node scripts/install-mac.mjs --from-verified --destination "$RUNNER_TEMP/teller-install" --no-open
+          TELLER_PACKAGED_REPORT="$PWD/release/macos-verification/installed-fixture.json" node scripts/packaged-smoke.mjs "$RUNNER_TEMP/teller-install/Teller Tactical.app/Contents/MacOS/Teller Tactical"
       - name: Record actual acceptance status
         if: always()
         run: |
@@ -61,21 +66,24 @@ jobs:
           import json,os,pathlib,re,subprocess
           root=pathlib.Path('release')
           records=[]
-          for name in ['macos-release.json','macos-verification/acceptance.json','macos-verification/backend-live.json','macos-verification/packaged-live.json','macos-verification/packaged-fixture.json']:
+          for name in ['macos-release.json','macos-verification/acceptance.json','macos-verification/backend-live.json','macos-verification/packaged-live.json','macos-verification/packaged-fixture.json','macos-verification/installed-local.json','macos-verification/installed-fixture.json']:
               path=root/name
               if path.is_file():
                   data=json.loads(path.read_text())
-                  records.append({'file':name,**{k:data[k] for k in ['status','host','fixture','error','checks','distributionReady','artifact'] if k in data}})
+                  records.append({'file':name,**{k:data[k] for k in ['status','host','fixture','error','checks','distributionReady','artifact','sourceHealth','qualityWarnings'] if k in data}})
           signing=subprocess.run(['/usr/bin/security','find-identity','-v','-p','codesigning'],capture_output=True,text=True)
           count=re.search(r'(\d+) valid identities found',signing.stdout+signing.stderr)
           print(json.dumps({'signing_identity_count':int(count.group(1)) if count else None}))
           def annotation(value):
               return str(value).replace('%','%25').replace('\r','%0D').replace('\n','%0A')[:6000]
-          for name in ['macos-release.json','macos-verification/acceptance.json','macos-verification/packaged-fixture.json','macos-verification/backend-live.json','macos-verification/packaged-live.json']:
+          for name in ['macos-release.json','macos-verification/acceptance.json','macos-verification/packaged-fixture.json','macos-verification/backend-live.json','macos-verification/packaged-live.json','macos-verification/installed-local.json','macos-verification/installed-fixture.json']:
               path=root/name
               if not path.is_file():continue
               value=json.loads(path.read_text())
-              if value.get('status')=='passed':continue
+              if value.get('status')=='passed':
+                  passed={k:value[k] for k in ['status','host','checks','distributionReady','artifact','sourceHealth','qualityWarnings','launchToUsableMs','nativeProbe'] if k in value}
+                  print('::notice title=Teller Mac passed '+name+'::'+annotation(json.dumps(passed)))
+                  continue
               parts=[str(value.get('error','Unknown acceptance failure'))]
               for entry in value.get('diagnostics',[])[-2:]:
                   command=entry.get('command',{})

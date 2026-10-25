@@ -176,3 +176,19 @@ test('malformed HTTP200 XML cannot replace the last accepted satellite metadata'
   assert.equal(result.retrievedAt, new Date(1000).toISOString());
   assert.equal((await cache.get(source, { allowStale: true })).data.toString(), xml);
 });
+
+test('cancellation during asynchronous cache lookup cannot start an unobserved source request', async t => {
+  const cache = new DiskCache(await temporary(t));
+  const entered = Promise.withResolvers(), release = Promise.withResolvers();
+  const get = cache.get.bind(cache);
+  cache.get = async (...args) => { entered.resolve(); await release.promise; return get(...args); };
+  let calls = 0;
+  const client = new WeatherClient({ cache, fetchImpl: async () => { calls++; return imageResponse(png); } });
+  t.after(() => client.close());
+  const controller = new AbortController();
+  const pending = client.bytes(url, { signal: controller.signal });
+  const cancelled = assert.rejects(pending, /cancelled during cache IO/);
+  await entered.promise; controller.abort(new Error('cancelled during cache IO')); release.resolve();
+  await cancelled;
+  assert.equal(calls, 0); assert.equal(client.inflight.size, 0);
+});

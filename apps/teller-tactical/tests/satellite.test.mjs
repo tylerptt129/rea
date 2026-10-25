@@ -41,6 +41,21 @@ test('satellite resources and legends cannot escape provider host or use unknown
  const product=parseGibsCapabilities(capabilities(),{now}).products[0];assert.throws(()=>satelliteTileUrl(product,product.frames[0],2,0,0),/zoom/);assert.throws(()=>satelliteTileUrl(product,product.frames[0],1,2,0),/coverage/);
 });
 
+test('satellite advertises a legend only for an authentic source legend or ColorMap1.3 metadata',()=>{
+ const noLegend=capabilities().replace(/<LegendURL[^>]*\/>/,'');
+ const role='http://earthdata.nasa.gov/gibs/metadata-type/colormap/1.3';
+ const href='https://gibs.earthdata.nasa.gov/colormaps/v1.3/source-advertised.xml';
+ const metadata=(r,url)=>`<ows:Metadata xlink:role="${r}" xlink:href="${url}"/>`;
+ const parse=xml=>parseGibsCapabilities(xml,{now}).products[0];
+ assert.equal(parse(noLegend).legendUrl,undefined);
+ const source=parse(noLegend.replace('<Format>',metadata(role,href)+'<Format>'));
+ assert.equal(source.colorMapRemote,href);assert.equal(source.legendRemote,undefined);assert.equal(source.legendUrl,`/api/legend/${source.id}`);
+ for(const [r,url]of [[role.replace('/1.3','/1.0'),href],[role,'http://gibs.earthdata.nasa.gov/source.xml'],[role,'https://example.com/source.xml'],[role,'https://secret@gibs.earthdata.nasa.gov/source.xml']]){
+  const rejected=parse(noLegend.replace('<Format>',metadata(r,url)+'<Format>'));
+  assert.equal(rejected.legendUrl,undefined);assert.equal(rejected.colorMapRemote,undefined);
+ }
+});
+
 test('visible channel is source-identified and water vapor is admitted only when explicit source metadata agrees',()=>{
  const visible=parseGibsCapabilities(capabilities({id:'GOES-East_ABI_Band2_Red_Visible_1km',title:'Red visible'}),{now}).products[0];assert.equal(visible.deliveredResolutionKm,1);assert.ok(visible.notes.some(n=>n.includes('daylight')));
  assert.equal(parseGibsCapabilities(capabilities({id:'GOES-East_ABI_Band9_Imagery',title:'Unknown channel'}),{now}).products.length,0);

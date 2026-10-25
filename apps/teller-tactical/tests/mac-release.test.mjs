@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { APP_IDENTIFIER, requireMacHost, machoArchitectures, requireBundleInfo, signatureSummary, requireGatekeeper, requireAcceptance, parseMacArguments, diagnosticText, commandDiagnostic, acceptanceDiagnostic, checkAcceptanceReport, run } from '../scripts/verify-mac.mjs';
+import { APP_IDENTIFIER, requireMacHost, machoArchitectures, requireBundleInfo, signatureSummary, requireGatekeeper, requireAcceptance, parseMacArguments, diagnosticText, commandDiagnostic, acceptanceDiagnostic, checkAcceptanceReport, run, sourceQualityFields } from '../scripts/verify-mac.mjs';
 import { artifactName, parseReleaseArguments, requireAcceptedNotarization, requireReleaseConfiguration } from '../scripts/release-mac.mjs';
 
 const host = { platform: 'darwin', arch: 'arm64', version: '15.6.1' };
 const bundle = { CFBundleIdentifier: APP_IDENTIFIER, CFBundleExecutable: 'Teller Tactical', CFBundleShortVersionString: '0.1.0', LSMinimumSystemVersion: '13.0' };
 const signature = 'CodeDirectory v=20500 size=1024 flags=0x10000(runtime) hashes=42\nAuthority=Developer ID Application: Test Developer (ABCD123456)\nAuthority=Developer ID Certification Authority\nTimestamp=Oct 25, 2026\nTeamIdentifier=ABCD123456\n';
 const current = Date.parse('2026-10-25T15:00:00Z');
-const evidence = { status: 'passed', startedAt: new Date(current).toISOString(), host, checks: [{ name: 'actual-render', status: 'passed' }], launchFlags: ['--remote-debugging-address=127.0.0.1'], consoleErrors: [], pageErrors: [], fixture: false };
+const evidence = { status: 'passed', startedAt: new Date(current).toISOString(), host, checks: [{ name: 'actual-render', status: 'passed' }], launchFlags: ['--remote-debugging-address=127.0.0.1'], consoleErrors: [], pageErrors: [], fixture: false, sourceHealth: 'within-startup-budgets', qualityWarnings: [] };
 
 test('native target gate distinguishes Linux cross-build, Rosetta/Intel and unsupported macOS from Apple Silicon', () => {
   assert.throws(() => requireMacHost({ platform: 'linux', arch: 'arm64', version: '15.6' }), /Linux cross-build/);
@@ -168,4 +168,34 @@ test('actual failed subprocess exit and stderr remain attached rather than colla
     assert.match(error.message, /Specific native-launch failure/);
     return true;
   });
+});
+
+
+test('aged-source behavioral pass preserves exact quality facts through acceptance, verification and package trust', () => {
+  const warning = {
+    productId: 'gibs-ir', sourceProductId: 'GOES-East_ABI_Band13_Clean_Infrared', sourceUrl: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/wmts.cgi',
+    observationTime: '2026-10-25T13:45:00Z', retrievedAt: '2026-10-25T14:59:59Z', asOf: '2026-10-25T15:00:00Z',
+    ageMinutes: 75, budgetMinutes: 70, freshness: 'aged', sourceHealth: 'degraded', uiStatusLabel: 'STALE / CACHED', uiStatus: 'STALE / CACHED — imagery time unchanged; source delayed',
+  };
+  const accepted = requireAcceptance({ ...evidence, sourceHealth: 'degraded', qualityWarnings: [warning] }, { kind: 'packaged-live', startedAt: current });
+  assert.equal(accepted.passed, true, 'Correct stale-state handling is behaviorally valid after the producer proved fresh startup');
+  assert.equal(accepted.sourceHealth, 'degraded');
+  const verification = { status: 'passed', distributionReady: false, ...sourceQualityFields(accepted, { required: true }) };
+  const release = { status: 'passed', distributionReady: true, ...sourceQualityFields(verification, { required: true }) };
+  assert.equal(release.distributionReady, true, 'Package trust is a separate fact');
+  assert.equal(release.sourceHealth, 'degraded', 'Signing/notarization must not relabel delayed observations as fresh');
+  assert.deepEqual(release.qualityWarnings, [warning]);
+  warning.observationTime = '2026-10-25T15:00:00Z';
+  assert.equal(release.qualityWarnings[0].observationTime, '2026-10-25T13:45:00Z', 'Outer evidence owns a stable copy and never retimes the source');
+});
+
+test('degraded or fresh source labels cannot omit, contradict or fabricate meaningful quality warnings', () => {
+  assert.throws(() => requireAcceptance({ ...evidence, sourceHealth: 'degraded', qualityWarnings: [] }, { kind: 'packaged-live', startedAt: current }), /meaningful aged-source warnings/);
+  assert.throws(() => requireAcceptance({ ...evidence, sourceHealth: 'degraded', qualityWarnings: [{ message: 'old' }] }, { kind: 'packaged-live', startedAt: current }), /lacks source identity/);
+  assert.throws(() => requireAcceptance({ ...evidence, sourceHealth: undefined, qualityWarnings: undefined }, { kind: 'packaged-live', startedAt: current }), /omitted a complete source-health/);
+  assert.throws(() => requireAcceptance({ ...evidence, sourceHealth: 'fresh-startup-verified' }, { kind: 'packaged-live', startedAt: current }), /complete source-health/);
+  const warning = { productId: 'ir', sourceUrl: 'https://gibs.earthdata.nasa.gov', observationTime: '2026-10-25T13:45:00Z', retrievedAt: null, asOf: '2026-10-25T15:00:00Z', ageMinutes: 75, budgetMinutes: 70, freshness: 'aged', sourceHealth: 'degraded', uiStatusLabel: 'SOURCE DATA', uiStatus: 'SOURCE DATA' };
+  assert.throws(() => sourceQualityFields({ sourceHealth: 'degraded', qualityWarnings: [warning] }), /visible stale/);
+  assert.throws(() => sourceQualityFields({ sourceHealth: 'within-startup-budgets', qualityWarnings: [{ ...warning, uiStatusLabel: 'STALE / CACHED' }] }), /contradicts/);
+  assert.throws(() => sourceQualityFields({ sourceHealth: 'degraded', qualityWarnings: [{ ...warning, uiStatusLabel: 'STALE / CACHED', ageMinutes: 60 }] }), /age\/budget/);
 });

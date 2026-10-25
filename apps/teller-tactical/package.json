@@ -20,7 +20,8 @@
     "test:packaged": "node scripts/packaged-smoke.mjs",
     "test:packaged:live": "node scripts/packaged-live-smoke.mjs",
     "verify:mac": "node scripts/verify-mac.mjs",
-    "release:mac": "node scripts/release-mac.mjs"
+    "release:mac": "node scripts/release-mac.mjs",
+    "install:mac": "node scripts/install-mac.mjs"
   },
   "allowScripts": {
     "electron@45.0.0": true

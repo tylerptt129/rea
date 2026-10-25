@@ -1,6 +1,14 @@
 # Release and first launch
 
-Primary target: Apple Silicon macOS (`darwin-arm64`). The development/automation host is Linux x86_64. A generated macOS `.app` is **unverified on its target OS until it has actually been launched and tested on macOS**. Nothing in a successful Linux test establishes Apple Silicon performance or Gatekeeper acceptance.
+Primary target: Apple Silicon macOS (`darwin-arm64`). Local development runs on Linux x86_64; the authorized native acceptance workflow runs on actual `macos-15` Darwin/arm64. The application has launched there with hardware GPU rendering and real weather, but the complete release gate has not passed. Current probe/color-map additions require a new native run. No notarized user download is available; Linux success does not establish Mac behavior or Gatekeeper acceptance.
+
+## Current native release evidence
+
+With explicit user authorization, source is hosted additively in `tylerptt129/rea` on branch `teller-tactical-release`, under `apps/teller-tactical`, alongside a branch-specific Mac workflow. REA main remains unchanged. The workflow was resumed with the user's explicit permission.
+
+[Run 40244655567](https://github.com/tylerptt129/rea/actions/runs/40244655567) **failed overall** after demonstrating native launch, hardware GPU rendering, actual radar/visible/infrared satellite/NWS data and radar playback from a strictly fresh startup. Satellite legends returned HTTP 404, and catalog aging after startup also failed acceptance. New source color-map handling and explicit post-startup aging reports address these paths in code, but have not yet passed a new Mac run. Native-index N0Q radar probing is also newly integrated and not live-Mac validated.
+
+The runner reported **zero valid code-signing identities**. Developer mode uses an ad-hoc signature, which does not establish Developer ID trust or notarization. No full-gate developer artifact or notarized distribution should be inferred from an earlier successful stage. Consult [VERIFICATION.md](VERIFICATION.md) for the current evidence boundary.
 
 ## Build from source
 
@@ -42,7 +50,7 @@ On macOS, open the bundle normally from Finder or run:
 open 'release/Teller Tactical-darwin-arm64/Teller Tactical.app'
 ```
 
-The bundle is not claimed to be signed or notarized. Developer ID signing and notarization require an authorized Apple Developer identity and a macOS release environment; neither is available in this cloud host. Do not disable Gatekeeper, remove quarantine attributes, or turn off security protections to run a downloaded bundle. A local source build on the user's Mac is the appropriate development route while a signed distribution is unavailable.
+A bundle created by `package:mac` alone has no distribution-trust claim. The native release route can ad-hoc sign developer candidates; it currently has zero valid distribution code-signing identities. Developer ID signing and notarization require an authorized installed Apple Developer identity and existing notarization configuration on a Mac. Do not disable Gatekeeper, remove quarantine attributes, or turn off security protections to run a downloaded bundle. A user-local source build on a Mac remains supported without Developer ID signing; retain normal macOS security protections. It is a development route while notarized distribution is unavailable.
 
 Linux test packaging is separate:
 
@@ -61,7 +69,7 @@ The Linux package does not substitute for a verified Mac release. An application
 4. Use the timeline to select a frame and start playback. Missing or stale products must remain visibly identified; the interface cannot turn a blocked feed into live data.
 5. Refresh, relaunch, and verify that preferences remain. Review data-source limitations in [data-sources.md](data-sources.md).
 
-The current managed cloud proxy blocks required live weather/reference destinations. Saving domain requirements in an environment draft does not apply access or validate current feed schemas. Until actual live fetch, render, animation, and refresh checks pass, do not label this release ready for live use.
+The initial managed cloud proxy blocked required weather/reference destinations; native CI subsequently retrieved and rendered real weather sources. Use each run's actual diagnostics rather than applying the earlier proxy conclusion to another host. Until all required current-source native launch, legends/probe, playback, refresh and recovery checks pass, do not label this release ready for live use.
 
 ## Packaged-application fixture smoke test
 
@@ -74,7 +82,7 @@ TELLER_SMOKE_OUTPUT="$(pwd)/test-results/packaged-electron.json" \
   'release/Teller Tactical-linux-x64/Teller Tactical'
 ```
 
-On macOS, invoke the executable inside `Teller Tactical.app/Contents/MacOS/Teller Tactical` with the same environment variables. The output and test-profile paths must be absolute. `TELLER_TEST_USER_DATA` is accepted only with `TELLER_FIXTURE=1`; it overrides Electron's user-data directory before startup so tests on macOS also avoid real preferences. `XDG_CONFIG_HOME` alone does not isolate a Mac application. Fixture mode must be conspicuous in the UI.
+On macOS, invoke the executable inside `Teller Tactical.app/Contents/MacOS/Teller Tactical` with the same environment variables. The output and test-profile paths must be absolute. `TELLER_TEST_USER_DATA` requires explicit fixture or live acceptance mode and an absolute isolated directory; it overrides Electron's user-data directory before startup so tests on macOS also avoid real preferences. The screenshot harness shown here additionally requires `TELLER_FIXTURE=1`. `XDG_CONFIG_HOME` alone does not isolate a Mac application. Fixture mode must be conspicuous in the UI.
 
 The harness waits up to 20 seconds for `window.__tellerReady === true` or `{ready:true,...}`, a nonzero map canvas, current displayed weather frames for each map, a non-placeholder visible timeline label, and no pending loading labels. It requires 600 ms of stable frame identities and waits for two compositor animation frames before capture. The renderer must set the marker only after actual fixture-data and map/frame render readiness; the additional current-state checks guard against a marker left true during subsequent loading. Merely loading the HTML document is insufficient. The harness captures an actual native-window PNG, writes JSON containing observed readiness, console errors, application/platform versions, GPU feature status, and process resource snapshots, then quits through normal gateway cleanup. Failures produce a report and nonzero process status. `mainScriptToReadyMs` excludes OS process creation and is not a cold-start measurement.
 
@@ -89,9 +97,23 @@ node scripts/packaged-smoke.mjs \
   'release/Teller Tactical-linux-x64/Teller Tactical'
 ```
 
-Use `xvfb-run -a` before `node` on a headless Linux host. Pass the executable inside the `.app` bundle for a future Mac run. The helper explicitly sets `chromiumSandbox:true`; Playwright's Linux Electron default would otherwise add a sandbox-disabling flag. Its software ANGLE flags are test-only. It verifies actual raster/frame changes, UI property/theme persistence, immediate pending-write flush on app quit, and pending-write flush on actual `BrowserWindow.close()`, then checks restoration in a fresh native process. The final Linux run passed **5/5 groups** with zero JavaScript console/page errors. Inspect `test-results/packaged-workflow.json`, `packaged-workflow-first.png`, and `packaged-workflow-restored.png`; both final native screenshots were inspected for visible weather pixels, timestamps, property state and readable light/dark contrast.
+Use `xvfb-run -a` before `node` on a headless Linux host. Pass the executable inside the `.app` bundle for a native Mac run. The helper explicitly sets `chromiumSandbox:true`; Playwright's Linux Electron default would otherwise add a sandbox-disabling flag. Its software ANGLE flags are test-only. It verifies actual raster/frame changes, UI property/theme persistence, immediate pending-write flush on app quit, and pending-write flush on actual `BrowserWindow.close()`, then checks restoration in a fresh native process. The earlier Linux run passed **5/5 groups** with zero JavaScript console/page errors. Inspect `test-results/packaged-workflow.json`, `packaged-workflow-first.png`, and `packaged-workflow-restored.png`; both retained native screenshots were inspected for visible weather pixels, timestamps, property state and readable light/dark contrast.
 
-The built-in non-debugging screenshot/autoquit harness also passed on the final package: `test-results/packaged-final.json` and `.png`, with a real displayed synthetic frame and a 3,410 ms main-script-to-ready measurement. Initial failed/optimistic captures remain separately retained; they are not passing release evidence.
+The built-in non-debugging screenshot/autoquit harness also passed on that earlier Linux package: `test-results/packaged-final.json` and `.png`, with a real displayed synthetic frame and a 3,410 ms main-script-to-ready measurement. Initial failed/optimistic captures remain separately retained; they are not passing release evidence.
+
+## Native Apple Silicon gates
+
+Run on Darwin/arm64 from the independent app directory:
+
+```sh
+npm run release:mac -- --mode developer
+```
+
+Developer mode builds on macOS, ad-hoc signs, inspects the Mach-O/bundle signature and runs isolated native fixture, backend-live and packaged-live acceptance. The normal Mac GPU and security path is required; software-rendering and sandbox overrides cannot pass. Reports and screenshots remain under `release/macos-verification/` even when later gates fail. The CI workflow retains diagnostics on failure and only uploads the gated developer archive on success.
+
+Live startup must establish source data within its explicit freshness budgets. Subsequent aging retains original observation times and must appear as stale/unavailable with source-specific quality warnings. This source-quality result is separate from signature trust and complete behavioral acceptance; an ad-hoc developer result is never a notarized distribution result.
+
+Distribution mode additionally requires an existing installed `Developer ID Application` identity selected by `TELLER_MAC_SIGN_IDENTITY` and an existing `notarytool` keychain profile selected by `TELLER_NOTARY_PROFILE`. Do not put secret values in chat or repository files. It requires accepted Apple notarization, stapling and a positive Gatekeeper assessment before labeling any archive distributable. Those prerequisites and results are absent on the current runner.
 
 ## Security and reliability boundary
 
@@ -107,14 +129,15 @@ The built-in non-debugging screenshot/autoquit harness also passed on the final 
 Do not check these boxes without current-run evidence. Update the capability matrix and task ledger with exact test results and paths.
 
 - [x] Locked installation and build pass.
-- [x] Deterministic numerical and failure/recovery tests pass with nonzero test count; see task ledger for exact suite evidence.
+- [x] Current local integration passes 131 deterministic tests with zero failures/skips, the production build and 19 browser fixture groups; see VERIFICATION.md for scope.
 - [x] Real packaged Linux fixture application launches and screenshots are inspected; 5 native workflow groups passed.
 - [ ] Every visible control has a tested implementation; unfinished controls are omitted or honestly identified.
-- [ ] Actual authorized live sources return expected metadata and georeferenced imagery.
+- [x] Actual radar, visible/IR satellite and NWS source data rendered on native Apple Silicon in run 40244655567; this is partial progress, not full acceptance.
 - [ ] Live application loads, animates and refreshes real data successfully.
 - [ ] Offline startup, stale cache, interrupted download and reconnection behavior pass.
 - [x] Settings survive packaged relaunch, app-quit flush, and native window-close flush in isolated Linux fixture tests.
-- [ ] Apple Silicon `.app` launches and passes core acceptance on macOS.
+- [x] Apple Silicon `.app` launches using the native hardware GPU path.
+- [ ] Current Apple Silicon `.app` passes complete core acceptance, including corrected legends/probes, refresh and recovery.
 - [ ] Performance measurements are recorded on identified target hardware.
 - [ ] Optional derived tracking/nowcast capabilities have held-out validation before operational claims.
 - [ ] Signing/notarization and distribution verification are completed before claiming distribution readiness.

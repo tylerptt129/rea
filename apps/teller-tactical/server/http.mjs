@@ -16,7 +16,7 @@ const wait = (ms, signal) => new Promise((resolve, reject) => {
 });
 async function subscribed(promise, signal) {
   if (!signal) return promise;
-  signal.throwIfAborted();
+  if (signal.aborted) { void promise.catch(() => {}); signal.throwIfAborted(); }
   let abort;
   const cancelled = new Promise((_, reject) => { abort = () => reject(signal.reason ?? new Error('Request cancelled')); signal.addEventListener('abort', abort, { once: true }); });
   try { return await Promise.race([promise, cancelled]); } finally { signal.removeEventListener('abort', abort); }
@@ -53,41 +53,56 @@ export class WeatherClient {
     }
     return this.nativeFetch(url, { ...options, dispatcher: this.dispatcher });
   }
-  async bytes(value, { ttl = 300_000, maxBytes = 12 * 1024 * 1024, signal, category = 'image', image = {}, format } = {}) {
+  async bytes(value, { ttl = 300_000, maxBytes = 12 * 1024 * 1024, signal, category = 'image', image = {}, format, admission } = {}) {
     const url = validateRemoteUrl(value).href;
     signal?.throwIfAborted();
-    const cached = await this.acceptedCache(url, { category, maxBytes, image, format });
+    if (image.profile && image.profile !== 'iem-native-indexed') throw new Error('Unknown source image admission profile');
+    if (image.profile === 'iem-native-indexed' && (admission?.key !== 'iem-native-indexed-v1' || typeof admission.validate !== 'function')) throw new Error('Native radar images require their worker-backed source admission');
+    if (admission && (typeof admission.key !== 'string' || typeof admission.validate !== 'function')) throw new Error('Source admission requires a named validator');
+    const cached = await this.acceptedCache(url, { category, maxBytes, image, format, admission, signal });
+    // Cache IO/admission is asynchronous; a consumer may cancel while it runs.
+    // Do not create an unobserved source flight after that cancellation.
+    signal?.throwIfAborted();
     if (cached) { this.stats.cacheHits++; return cached; }
     // Admission format and byte/geometry budgets affect the result, so only
     // equivalent consumers share an in-flight validation/cache operation.
-    const requestKey = JSON.stringify([url, category, format ?? null, maxBytes, image.width ?? null, image.height ?? null, image.maxDimension ?? null, image.maxPixels ?? null]);
+    const requestKey = JSON.stringify([url, category, format ?? null, maxBytes, image.width ?? null, image.height ?? null, image.maxDimension ?? null, image.maxPixels ?? null, image.profile ?? null, admission?.key ?? null, admission?.owner ?? null]);
     let flight = this.inflight.get(requestKey);
     if (!flight) {
       const controller = new AbortController();
       flight = { controller, subscribers: 0 };
-      flight.promise = this.request(url, { ttl, maxBytes, category, image, format, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(this.timeoutMs)]) }).finally(() => this.inflight.delete(requestKey));
+      flight.promise = this.request(url, { ttl, maxBytes, category, image, format, admission, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(this.timeoutMs)]) }).finally(() => this.inflight.delete(requestKey));
       this.inflight.set(requestKey, flight);
     }
     flight.subscribers++;
     try { return await subscribed(flight.promise, signal); }
     finally { if (--flight.subscribers === 0 && this.inflight.has(requestKey)) flight.controller.abort(new Error('No remaining request subscribers')); }
   }
-  async acceptedCache(url, { category, maxBytes, image = {}, format, allowStale = false }) {
+  async admit(data, contentType, { category, maxBytes, image = {}, format, admission, signal, url }) {
+    signal?.throwIfAborted();
+    if (category === 'image' && image.profile !== 'iem-native-indexed') validateImage(data, contentType, { ...image, maxBytes });
+    if (format === 'xml' && XMLValidator.validate(data.toString('utf8')) !== true) throw Object.assign(new Error(`Malformed XML from ${new URL(url).hostname}`), { retryable: false });
+    let parsedJson;
+    if (format === 'json') {
+      try { parsedJson = JSON.parse(data.toString('utf8')); }
+      catch { throw Object.assign(new Error(`Malformed JSON from ${new URL(url).hostname}`), { retryable: false }); }
+    }
+    const admissionFact = admission ? await admission.validate(data, contentType, { signal, sourceUrl: url }) : undefined;
+    return { ...(format === 'json' ? { parsedJson } : {}), ...(admission ? { admissionFact } : {}) };
+  }
+  async acceptedCache(url, { category, maxBytes, image = {}, format, admission, signal, allowStale = false }) {
     const cached = await this.cache.get(url, { allowStale });
     if (!cached) return null;
     if (cached.data.length > maxBytes) throw new Error('Weather source cached response exceeds the byte limit');
-    if (category === 'image') {
-      try { validateImage(cached.data, cached.contentType, { ...image, maxBytes }); }
-      catch { await this.cache.remove(url); return null; }
+    try { return { ...cached, ...await this.admit(cached.data, cached.contentType, { category, maxBytes, image, format, admission, signal, url }) }; }
+    catch (error) {
+      if (signal?.aborted || error.retryable !== false) throw error;
+      await this.cache.remove(url);
+      return null;
     }
-    if (format === 'xml' && XMLValidator.validate(cached.data.toString('utf8')) !== true) { await this.cache.remove(url); return null; }
-    if (format === 'json') {
-      try { return { ...cached, parsedJson: JSON.parse(cached.data.toString('utf8')) }; }
-      catch { await this.cache.remove(url); return null; }
-    }
-    return cached;
   }
-  async request(url, { ttl, maxBytes, category, signal, image, format }) {
+
+  async request(url, { ttl, maxBytes, category, signal, image, format, admission }) {
     let acquired = false;
     try {
       await this.acquire(signal); acquired = true;
@@ -95,7 +110,7 @@ export class WeatherClient {
         try {
           signal.throwIfAborted();
           this.stats.networkRequests++;
-          const response = await this.fetch(url, { signal, redirect: 'error', headers: { 'User-Agent': 'TellerTactical/0.1 (local weather workstation)', Accept: category === 'metadata' ? 'application/geo+json, application/json, application/xml, text/xml' : 'image/png, image/jpeg, image/webp, */*' } });
+          const response = await this.fetch(url, { signal, redirect: 'error', headers: { 'User-Agent': 'TellerTactical/0.1 (local weather workstation)', Accept: category === 'metadata' ? 'application/geo+json, application/json, application/xml, text/xml, text/plain' : 'image/png, image/jpeg, image/webp, */*' } });
           if (!response.ok) {
             await response.body?.cancel();
             const error = new Error(`Weather source returned HTTP ${response.status}: ${new URL(url).hostname}`);
@@ -114,16 +129,10 @@ export class WeatherClient {
           const data = Buffer.concat(chunks);
           this.stats.downloadedBytes += count;
           const contentType = response.headers.get('content-type') ?? 'application/octet-stream';
-          if (category === 'image') validateImage(data, contentType, { ...image, maxBytes });
-          if (format === 'xml' && XMLValidator.validate(data.toString('utf8')) !== true) throw Object.assign(new Error(`Malformed XML from ${new URL(url).hostname}`), { retryable: false });
-          let parsedJson;
-          if (format === 'json') {
-            try { parsedJson = JSON.parse(data.toString('utf8')); }
-            catch { throw Object.assign(new Error(`Malformed JSON from ${new URL(url).hostname}`), { retryable: false }); }
-          }
+          const facts = await this.admit(data, contentType, { category, maxBytes, image, format, admission, signal, url });
           // Source validity is established before replacing the last accepted bytes.
           await this.cache.put(url, data, { ttl, contentType, category });
-          return { data, contentType, retrievedAt: new Date().toISOString(), stale: false, sourceUrl: url, ...(format === 'json' ? { parsedJson } : {}) };
+          return { data, contentType, retrievedAt: new Date().toISOString(), stale: false, sourceUrl: url, ...facts };
         } catch (error) {
           if (signal.aborted || error.retryable === false || /HTTP 4\d\d|byte limit|empty response/.test(error.message) && !error.retryable || attempt + 1 >= this.attempts) throw error;
           await wait(250 * (2 ** attempt), signal);
@@ -133,7 +142,7 @@ export class WeatherClient {
       this.stats.failures++;
       this.lastErrors.push({ at: new Date().toISOString(), source: new URL(url).hostname, message: error.message }); this.lastErrors = this.lastErrors.slice(-20);
       if (signal.aborted && /No remaining/.test(String(signal.reason))) throw error;
-      const old = await this.acceptedCache(url, { category, maxBytes, image, format, allowStale: true });
+      const old = await this.acceptedCache(url, { category, maxBytes, image, format, admission, signal: signal.aborted ? undefined : signal, allowStale: true });
       if (old) { this.stats.staleFallbacks++; return { ...old, stale: true, error: error.message }; }
       throw error;
     } finally { if (acquired) this.release(); }

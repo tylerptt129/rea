@@ -1,6 +1,7 @@
 import { deflateSync } from 'node:zlib';
 import { readFile, writeFile, rename } from 'node:fs/promises';
 import { tileBBox } from '../src/domain.mjs';
+import { parseColorMapLegend, renderColorMapLegend } from './legends.mjs';
 import { discoverSatellite, satelliteTileUrl, safeGibsUrl } from './satellite.mjs';
 
 const IEM = 'https://mesonet.agron.iastate.edu';
@@ -32,7 +33,7 @@ export class ProductCatalog {
           if (!validTimes) return false;
           if (p.id === 'iem-n0q') return p.serviceUrl === WMS && p.wmsLayer === 'nexrad-n0q-wmst' && p.frames.every(f => f.id === frameId(f.time));
           if (!p.id?.startsWith('gibs-') || !p.wmts || !p.wmts.matrices || !Object.keys(p.wmts.matrices).length) return false;
-          try { safeGibsUrl(p.wmts.template, { template: true }); if (p.legendRemote) safeGibsUrl(p.legendRemote); return true; } catch { return false; }
+          try { safeGibsUrl(p.wmts.template, { template: true }); if (p.legendRemote) safeGibsUrl(p.legendRemote); if(p.colorMapRemote)safeGibsUrl(p.colorMapRemote); return true; } catch { return false; }
         });
         if (safe.length) {
           this.lastProducts = safe.map(p => ({ ...p, stale: true }));
@@ -70,7 +71,7 @@ export class ProductCatalog {
         const frames = validFrames(response.data.scans, this.now());
         if (!frames.length) throw new Error('IEM returned no verified recent mosaic frame times');
         stale ||= response.stale;
-        products.push({ id: 'iem-n0q', name: 'CONUS reflectivity mosaic', kind: 'radar', source: 'Iowa Environmental Mesonet / NWS Level III', sourceUrl: `${IEM}/docs/nexrad_mosaic/`, units: 'dBZ', projection: 'EPSG:3857', cadenceMinutes: 5, frames, coverage: 'CONUS provider composite; not raw single-site radar', notes: ['Nominal mosaic times are archive-published times. Individual radar inputs can be up to 15 minutes old.', 'Beam blockage, beam overshoot, attenuation, anomalous propagation, and missing source radars limit coverage.', 'Image service preserves georeferencing but does not expose reliable numerical probing here.'], numericalProbe: false, legendUrl: '/api/legend/iem-n0q', serviceUrl: WMS, wmsLayer: 'nexrad-n0q-wmst', stale: response.stale, retrievedAt: response.retrievedAt });
+        products.push({ id: 'iem-n0q', name: 'CONUS reflectivity mosaic', kind: 'radar', source: 'Iowa Environmental Mesonet / NWS Level III', sourceUrl: `${IEM}/docs/nexrad_mosaic/`, units: 'dBZ', projection: 'EPSG:3857', cadenceMinutes: 5, frames, coverage: 'CONUS provider composite; not raw single-site radar', notes: ['Nominal mosaic times are archive-published times. Individual radar inputs can be up to 15 minutes old.', 'Beam blockage, beam overshoot, attenuation, anomalous propagation, and missing source radars limit coverage.', 'Numeric probes use original indexed archive pixels and worldfile registration, quantized to 0.5 dBZ; not resampled display colors.'], numericalProbe: true, quantizationDbz: 0.5, legendUrl: '/api/legend/iem-n0q', serviceUrl: WMS, wmsLayer: 'nexrad-n0q-wmst', stale: response.stale, retrievedAt: response.retrievedAt });
       } catch (error) { errors.push({ source: 'IEM radar', message: error.message }); }
       try {
         const outcome = await satelliteTask;
@@ -119,6 +120,11 @@ export class ProductCatalog {
     if (!product || !product.legendUrl) throw Object.assign(new Error('Source legend is unavailable for this product'), { status: 404 });
     let url;
     if (product.legendRemote) url = safeGibsUrl(product.legendRemote);
+    else if(product.colorMapRemote){
+      const response=await this.client.bytes(safeGibsUrl(product.colorMapRemote),{ttl:86400_000,maxBytes:1024*1024,category:'metadata',format:'xml',admission:{key:'gibs-colormap-v1',validate:bytes=>{try{return parseColorMapLegend(bytes);}catch(error){error.retryable=false;throw error;}}},signal});
+      const legend=renderColorMapLegend(response.data,{title:product.name});
+      return {...response,data:legend.data,contentType:legend.contentType};
+    }
     else if (product.id === 'iem-n0q') {
       const request = new URL(WMS);
       request.search = new URLSearchParams({ SERVICE: 'WMS', VERSION: '1.1.1', REQUEST: 'GetLegendGraphic', LAYER: product.wmsLayer, FORMAT: 'image/png' }).toString();
@@ -128,7 +134,7 @@ export class ProductCatalog {
   }
 }
 
-function publicProduct({ serviceUrl, wmsLayer, wmts, legendRemote, ...product }) { return product; }
+function publicProduct({ serviceUrl, wmsLayer, wmts, legendRemote, colorMapRemote, ...product }) { return product; }
 
 const crcTable = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ c >>> 1 : c >>> 1; return c >>> 0; });
 const crc32 = buffer => { let c = 0xffffffff; for (const byte of buffer) c = crcTable[(c ^ byte) & 255] ^ c >>> 8; return (c ^ 0xffffffff) >>> 0; };

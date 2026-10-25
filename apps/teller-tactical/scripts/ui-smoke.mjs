@@ -238,7 +238,10 @@ try {
     await canvas.click({position:{x:box.width*0.7,y:box.height*0.45}});
     await page.waitForFunction(() => document.querySelector('#point-name').textContent==='Selected map point');
     assert.equal(await page.locator('#probe').isVisible(), true);
-    assert.match(await page.locator('#probe').innerText(), /numerical.*unavailable/i);
+    await page.waitForFunction(() => /Synthetic fixture images are not quantitative radar observations/.test(document.querySelector('#probe').textContent));
+    assert.doesNotMatch(await page.locator('#probe').innerText(), /[\d.-]+ dBZ/);
+    await page.locator('#probe [aria-label="Close probe"]').click();
+    assert.equal(await page.locator('#probe').isVisible(), false);
     await page.waitForFunction(() => document.querySelectorAll('.teller-point-marker').length===1);
     page.once('dialog', dialog => dialog.accept('Fixture camera'));
     await page.locator('#save-view').click();

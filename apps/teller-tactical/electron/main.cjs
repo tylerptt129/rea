@@ -10,7 +10,7 @@ const fixture = process.env.TELLER_FIXTURE === '1';
 const acceptanceMode = process.env.TELLER_ACCEPTANCE_MODE === 'live' ? 'live' : fixture ? 'fixture' : null;
 if (fixture && acceptanceMode === 'live') throw new Error('Live acceptance cannot use fixture mode.');
 const smokeOutput = process.env.TELLER_SMOKE_OUTPUT;
-const externalHosts = new Set(['www.weather.gov', 'weather.gov', 'api.weather.gov', 'www.noaa.gov', 'noaa.gov', 'mesonet.agron.iastate.edu', 'wsv3.com']);
+const externalHosts = new Set(['www.weather.gov', 'weather.gov', 'api.weather.gov', 'www.noaa.gov', 'noaa.gov', 'mesonet.agron.iastate.edu', 'www.earthdata.nasa.gov', 'earthdata.nasa.gov', 'gibs.earthdata.nasa.gov', 'www.openstreetmap.org', 'carto.com', 'wsv3.com']);
 const consoleErrors = [];
 let gateway;
 let mainWindow;
