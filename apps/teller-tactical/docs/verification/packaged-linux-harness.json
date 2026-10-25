@@ -1,0 +1,187 @@
+{
+  "ok": true,
+  "phase": "render-readiness",
+  "dataset": "deterministic fixture; not live weather",
+  "packaged": true,
+  "platform": "linux",
+  "arch": "x64",
+  "appVersion": "0.1.0",
+  "electron": "45.0.0",
+  "node": "24.22.0",
+  "chromium": "156.0.8078.48",
+  "mainScriptToReadyMs": 3410,
+  "measurementScope": "Starts at main script execution; excludes OS process creation and is not a cold-launch measurement.",
+  "gpu": {
+    "2d_canvas": "enabled",
+    "direct_rendering_display_compositor": "disabled_off_ok",
+    "gpu_compositing": "enabled",
+    "multiple_raster_threads": "enabled_on",
+    "opengl": "enabled_on",
+    "rasterization": "enabled",
+    "raw_draw": "disabled_off_ok",
+    "skia_graphite": "disabled_off",
+    "trees_in_viz": "disabled_off",
+    "video_decode": "enabled",
+    "video_encode": "disabled_software",
+    "vulkan": "disabled_off",
+    "webgl": "enabled",
+    "webgpu": "unavailable_software",
+    "webgpu_on_vk_via_gl_interop": "disabled_off",
+    "webnn": "disabled_off"
+  },
+  "processes": [
+    {
+      "type": "Browser",
+      "memoryKiB": {
+        "workingSetSize": 173260,
+        "peakWorkingSetSize": 174660
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 0.75,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "GPU",
+      "memoryKiB": {
+        "workingSetSize": 241148,
+        "peakWorkingSetSize": 252016
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 8.31,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "Utility",
+      "name": "Network Service",
+      "memoryKiB": {
+        "workingSetSize": 85524,
+        "peakWorkingSetSize": 85524
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 0.1,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    },
+    {
+      "type": "Tab",
+      "memoryKiB": {
+        "workingSetSize": 178248,
+        "peakWorkingSetSize": 178248
+      },
+      "cpu": {
+        "cumulativeCPUUsage": 0.66,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      }
+    }
+  ],
+  "observation": {
+    "ready": true,
+    "details": {
+      "ready": true,
+      "fixture": true,
+      "frame": {
+        "id": "202601151830",
+        "time": "2026-01-15T18:30:00.000Z",
+        "partial": false,
+        "product": {
+          "id": "fixture-radar",
+          "name": "Synthetic reflectivity • TEST DATA",
+          "kind": "radar",
+          "source": "Deterministic synthetic fixture",
+          "sourceUrl": "",
+          "units": "dBZ",
+          "projection": "EPSG:3857",
+          "cadenceMinutes": 5,
+          "frames": [
+            {
+              "id": "202601151755",
+              "time": "2026-01-15T17:55:00.000Z",
+              "verified": false
+            },
+            {
+              "id": "202601151800",
+              "time": "2026-01-15T18:00:00.000Z",
+              "verified": false
+            },
+            {
+              "id": "202601151805",
+              "time": "2026-01-15T18:05:00.000Z",
+              "verified": false
+            },
+            {
+              "id": "202601151810",
+              "time": "2026-01-15T18:10:00.000Z",
+              "verified": false
+            },
+            {
+              "id": "202601151815",
+              "time": "2026-01-15T18:15:00.000Z",
+              "verified": false
+            },
+            {
+              "id": "202601151820",
+              "time": "2026-01-15T18:20:00.000Z",
+              "verified": false
+            },
+            {
+              "id": "202601151825",
+              "time": "2026-01-15T18:25:00.000Z",
+              "verified": false
+            },
+            {
+              "id": "202601151830",
+              "time": "2026-01-15T18:30:00.000Z",
+              "verified": false
+            }
+          ],
+          "coverage": "Synthetic Colorado test field, not weather observations",
+          "notes": [
+            "TEST DATA ONLY — not current, observed, or operational.",
+            "Numerical probing intentionally unavailable."
+          ],
+          "numericalProbe": false,
+          "stale": false,
+          "fixture": true
+        }
+      },
+      "pointPeriods": 8
+    },
+    "canvases": [
+      {
+        "width": 1181,
+        "height": 707
+      }
+    ],
+    "displayedFrames": [
+      {
+        "id": "202601151830",
+        "product": "fixture-radar"
+      }
+    ],
+    "frameLabel": "Jan 15, 11:30 AM MST",
+    "pendingLabels": [],
+    "title": "Teller Tactical",
+    "viewport": {
+      "width": 1499,
+      "height": 959,
+      "pixelRatio": 1
+    },
+    "metrics": {
+      "frameSwitches": 1,
+      "failedFrames": 0,
+      "frameLoadMs": [
+        806.2000000001863
+      ],
+      "launchStart": 141.5,
+      "firstFrameMs": 2288.600000000093
+    }
+  },
+  "consoleErrors": [],
+  "screenshot": "/workspace/teller-tactical/test-results/packaged-final.png"
+}

@@ -1,0 +1,78 @@
+{
+  "description": "Independently written factual metadata extracted for source-contract research; not a redistributed copy of the NWS schema or README.",
+  "reviewed_at": "2026-10-25T07:36:04.333506+00:00",
+  "upstream_repository": "https://github.com/weather-gov/api",
+  "upstream_commit": "694ed0f5526336e58d513a8b8a2b313d7896bbf7",
+  "source_files": {
+    "assets/openapi.yaml": {
+      "git_blob_sha1": "5ce3a5b94c6df769a55433498e615ec16093e37d",
+      "sha256": "a1784a4a3d8ddb43dc201bd46a44fd7e0fc28a8ad8f121a6aaf4b05548af9ea2",
+      "bytes": 182961,
+      "source_url": "https://github.com/weather-gov/api/blob/694ed0f5526336e58d513a8b8a2b313d7896bbf7/assets/openapi.yaml",
+      "retained_full_copy": false
+    },
+    "README.md": {
+      "git_blob_sha1": "eb33792af8aa15edaf10447934aae8dbb6a112db",
+      "sha256": "cfa3e880da1f9c13d51771432470847ddbba60d1b22fa9ce2b5cd68d0422b9c9",
+      "bytes": 474,
+      "source_url": "https://github.com/weather-gov/api/blob/694ed0f5526336e58d513a8b8a2b313d7896bbf7/README.md",
+      "retained_full_copy": false
+    }
+  },
+  "schema_facts": {
+    "format": "OpenAPI",
+    "openapi_version": "3.0.3",
+    "service_schema_version": "1.9.0",
+    "production_origin": "https://api.weather.gov",
+    "authentication_declared": "Identifying User-Agent header; no API-key scheme declared for these public operations.",
+    "operations": [
+      {
+        "path": "/points/{point}",
+        "purpose": "Discover forecast, hourly forecast, grid data, and observation-station URLs for a geographic point."
+      },
+      {
+        "path": "/alerts/active",
+        "purpose": "Discover official active alerts; supports geographic point filtering."
+      },
+      {
+        "path": "/stations/{stationId}/observations/latest",
+        "purpose": "Retrieve latest available observation with measurement units, timestamp, and quality-control information."
+      },
+      {
+        "path": "/gridpoints/{wfo}/{x},{y}",
+        "purpose": "Retrieve NWS forecast-grid values; preserve interval timestamps and units."
+      },
+      {
+        "path": "/radar/stations",
+        "purpose": "Discover available radar-station metadata; not a source of raw radar sweeps."
+      }
+    ],
+    "grid_contract": {
+      "nominal_grid_description": "2.5 km grid square per schema description; does not establish terrain representativeness or exact point prediction.",
+      "quantitative_layer_fields": [
+        "uom",
+        "values[].validTime",
+        "values[].value"
+      ],
+      "missing_numeric_values": "nullable",
+      "potential_products": [
+        "quantitativePrecipitation",
+        "snowfallAmount",
+        "snowLevel",
+        "iceAccumulation",
+        "temperature",
+        "dewpoint",
+        "relativeHumidity",
+        "windSpeed",
+        "windDirection"
+      ],
+      "coverage_rule": "Potential schema layers may be absent in particular areas."
+    },
+    "provenance_rule": "NWS official forecast update/generation timestamps must not be presented as the initialization time of a named numerical model."
+  },
+  "license_review": {
+    "license_file_found": false,
+    "scope": "No LICENSE, COPYING, COPYRIGHT, or NOTICE file appeared among the 18 tracked paths inspected at this commit. No blanket redistribution permission or public-domain status is inferred.",
+    "retention_action": "Full schema and README copies removed. Minimal factual metadata, immutable source links, and exact source hashes retained."
+  }
+}

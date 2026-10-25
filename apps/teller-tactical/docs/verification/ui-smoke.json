@@ -1,0 +1,375 @@
+{
+  "label": "SYNTHETIC FIXTURE — does not verify live data or macOS",
+  "startedAt": "2026-10-25T07:45:38.279Z",
+  "host": {
+    "platform": "linux",
+    "arch": "x64",
+    "node": "v24.22.1"
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 1000,
+    "deviceScaleFactor": 1
+  },
+  "renderer": "Chromium headless; forced SwiftShader software GPU; not representative of Apple Silicon hardware",
+  "checks": [
+    {
+      "name": "actual synthetic weather texture loads",
+      "status": "passed",
+      "elapsedMs": 3251
+    },
+    {
+      "name": "frame scrubbing changes displayed time and actual raster pixels",
+      "status": "passed",
+      "elapsedMs": 1075
+    },
+    {
+      "name": "playback advances an actual displayed frame",
+      "status": "passed",
+      "elapsedMs": 725
+    },
+    {
+      "name": "radar/satellite fixture product selector changes actual layer",
+      "status": "passed",
+      "elapsedMs": 1570
+    },
+    {
+      "name": "two/four map layouts load and linked cameras synchronize",
+      "status": "passed",
+      "elapsedMs": 7387
+    },
+    {
+      "name": "light/dark theme and source metadata controls work",
+      "status": "passed",
+      "elapsedMs": 2104
+    },
+    {
+      "name": "opacity, overlay visibility, site camera and collapsible controls work",
+      "status": "passed",
+      "elapsedMs": 6320
+    },
+    {
+      "name": "map point probing and saved views preserve explicit user camera choices",
+      "status": "passed",
+      "elapsedMs": 2193
+    },
+    {
+      "name": "independent and linked timelines, frame buttons and loop speed work",
+      "status": "passed",
+      "elapsedMs": 7806
+    },
+    {
+      "name": "help, capabilities, diagnostics and forecast details expose useful source content",
+      "status": "passed",
+      "elapsedMs": 2837
+    },
+    {
+      "name": "property is initially unset and exact user entry persists",
+      "status": "passed",
+      "elapsedMs": 6584
+    },
+    {
+      "name": "keyboard and map image export work",
+      "status": "passed",
+      "elapsedMs": 2167
+    },
+    {
+      "name": "normal fixture workflow has no unhandled exceptions or console errors",
+      "status": "passed",
+      "elapsedMs": 0
+    },
+    {
+      "name": "partial point responses preserve alerts and withhold missing-grid accumulations",
+      "status": "passed",
+      "elapsedMs": 448
+    },
+    {
+      "name": "reversed user accumulation windows show unavailable totals without throwing",
+      "status": "passed",
+      "elapsedMs": 312
+    },
+    {
+      "name": "failed new-product tiles retain displayed source metadata, legend and export attribution",
+      "status": "passed",
+      "elapsedMs": 1682
+    },
+    {
+      "name": "network interruption shows failure without relabeling fixture as live",
+      "status": "passed",
+      "elapsedMs": 614
+    },
+    {
+      "name": "offline startup has no fabricated weather frame",
+      "status": "passed",
+      "elapsedMs": 3374
+    }
+  ],
+  "network": {
+    "requests": 690,
+    "completedResponses": 688,
+    "declaredTransferBytes": 4914370,
+    "failed": [
+      {
+        "url": "/api/basemap/dark/9/109/194.png",
+        "error": "net::ERR_ABORTED"
+      },
+      {
+        "url": "/api/refresh",
+        "error": "net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "url": "/api/point?lat=38.8339&lon=-104.8214",
+        "error": "net::ERR_INTERNET_DISCONNECTED"
+      }
+    ]
+  },
+  "limitations": [
+    "No live weather feeds exercised.",
+    "Linux Chromium is not the packaged Electron application or macOS target.",
+    "Short fixture playback measures neither prolonged-operation stability nor operational accuracy."
+  ],
+  "timeToFirstUsableFixtureMs": 2693,
+  "canvas": {
+    "colors": 179,
+    "width": 1122,
+    "height": 748,
+    "gpuRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+  },
+  "propertyPersistence": {
+    "beforeReload": {
+      "latitude": 38.95,
+      "longitude": -105.1,
+      "elevationFt": 9210
+    },
+    "afterReload": {
+      "latitude": 38.95,
+      "longitude": -105.1,
+      "elevationFt": 9210
+    }
+  },
+  "warmReloadToUsableFixtureMs": 4849,
+  "frameTiming": {
+    "idle": {
+      "samples": 120,
+      "elapsedMs": 1994,
+      "medianMs": 16.69999999999891,
+      "p95Ms": 16.799999999999272,
+      "worstMs": 16.80000000000109,
+      "over33ms": 0
+    },
+    "localFixturePan": {
+      "samples": 120,
+      "elapsedMs": 4110.600000000093,
+      "medianMs": 16.69999999999891,
+      "p95Ms": 150,
+      "worstMs": 166.70000000000073,
+      "over33ms": 16
+    },
+    "note": "Surrounding view is not fully prewarmed; this pan may load additional local fixture tiles."
+  },
+  "browserMemoryBytes": {
+    "before": {
+      "usedSize": 23107016,
+      "totalSize": 46678016,
+      "embedderHeapUsedSize": 5527920,
+      "backingStorageSize": 2253608
+    },
+    "after": {
+      "usedSize": 10527388,
+      "totalSize": 44580864,
+      "embedderHeapUsedSize": 2582680,
+      "backingStorageSize": 2151741
+    }
+  },
+  "dom": {
+    "documents": 5,
+    "nodes": 812,
+    "jsEventListeners": 138
+  },
+  "successfulWorkflowNetwork": {
+    "requests": 667,
+    "completedResponses": 667,
+    "declaredTransferBytes": 4912007,
+    "failed": [
+      {
+        "url": "/api/basemap/dark/9/109/194.png",
+        "error": "net::ERR_ABORTED"
+      }
+    ]
+  },
+  "status": "passed",
+  "pageErrors": [],
+  "consoleErrors": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/53/97.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/53/98.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/52/97.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/54/97.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/52/98.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/54/98.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/53/96.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/52/96.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/54/96.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/51/97.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/55/97.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/51/98.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/55/98.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/51/96.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/tiles/fixture-ir/202601151830/8/55/96.png",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/refresh",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "location": {
+        "url": "http://127.0.0.1:38763/api/point?lat=38.8339&lon=-104.8214",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "completedAt": "2026-10-25T07:46:36.333Z"
+}

@@ -1,0 +1,43 @@
+{
+  "name": "teller-tactical",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Independent Colorado-first weather workstation",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "engines": {
+    "node": ">=24.22.1"
+  },
+  "scripts": {
+    "dev": "node server/index.mjs",
+    "build": "vite build",
+    "start": "electron .",
+    "test": "node --test --test-isolation=none tests/*.test.mjs",
+    "test:ui": "node scripts/ui-smoke.mjs",
+    "test:live": "node scripts/live-smoke.mjs",
+    "package:linux": "npm run build && electron-packager . 'Teller Tactical' --platform=linux --arch=x64 --out=release --overwrite --ignore='^/(release|docs|tests|scripts|test-results|artifacts|.git|.cache)(/|$)'",
+    "package:mac": "npm run build && electron-packager . 'Teller Tactical' --platform=darwin --arch=arm64 --out=release --overwrite --app-bundle-id=tools.tellertactical.desktop --app-category-type=public.app-category.weather --ignore='^/(release|docs|tests|scripts|test-results|artifacts|.git|.cache)(/|$)'",
+    "test:packaged": "node scripts/packaged-smoke.mjs",
+    "test:packaged:live": "node scripts/packaged-live-smoke.mjs",
+    "verify:mac": "node scripts/verify-mac.mjs",
+    "release:mac": "node scripts/release-mac.mjs"
+  },
+  "allowScripts": {
+    "electron@45.0.0": true
+  },
+  "dependencies": {
+    "fast-xml-parser": "5.11.2",
+    "jpeg-js": "0.4.4",
+    "maplibre-gl": "6.15.0",
+    "undici": "8.12.3"
+  },
+  "devDependencies": {
+    "@electron/osx-sign": "2.7.1",
+    "@electron/packager": "20.3.0",
+    "electron": "45.0.0",
+    "playwright-core": "1.64.1",
+    "vite": "8.3.5"
+  },
+  "license": "MIT",
+  "packageManager": "npm@11.16.0"
+}

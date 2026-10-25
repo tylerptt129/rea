@@ -1,0 +1,28 @@
+{
+  "attempted_at": "2026-10-25T07:01Z",
+  "method": "read-only HTTPS using inherited proxy, sandbox escalation approved",
+  "tls_verification": true,
+  "outcomes": [
+    {
+      "hostname": "mesonet.agron.iastate.edu",
+      "outcome": "proxy CONNECT denied",
+      "error": "Tunnel connection failed: 403 Forbidden"
+    },
+    {
+      "hostname": "api.weather.gov",
+      "outcome": "proxy CONNECT denied",
+      "error": "Tunnel connection failed: 403 Forbidden"
+    },
+    {
+      "hostname": "nowcoast.noaa.gov",
+      "outcome": "proxy CONNECT denied",
+      "error": "Tunnel connection failed: 403 Forbidden"
+    },
+    {
+      "hostname": "cdn.star.nesdis.noaa.gov",
+      "outcome": "proxy CONNECT denied",
+      "error": "Tunnel connection failed: 403 Forbidden"
+    }
+  ],
+  "scope": "Current runtime evidence; draft network additions are not proof of application"
+}

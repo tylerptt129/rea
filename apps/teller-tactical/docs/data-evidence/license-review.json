@@ -1,0 +1,47 @@
+{
+  "reviewed_at": "2026-10-25T07:36:04.333506+00:00",
+  "iem": {
+    "repository": "https://github.com/akrherz/iem",
+    "commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "license_source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/LICENSE",
+    "retained_license": "iem-LICENSE.txt",
+    "license_sha256": "0192f3fb56bef95d33d76d8c415af2c6906f66dd49aa2c30615a6c9f4b98e660",
+    "description": "Upstream permissive license text in MIT form, copyright (c) 2005 Iowa State University. Retained unmodified with full research-source copies."
+  },
+  "nws": {
+    "repository": "https://github.com/weather-gov/api",
+    "commit": "694ed0f5526336e58d513a8b8a2b313d7896bbf7",
+    "tracked_path_count": 18,
+    "inspected_paths": [
+      ".gitignore",
+      "Gemfile",
+      "README.md",
+      "_config.yml",
+      "_includes/nav.html",
+      "_layouts/default.html",
+      "_sass/reset.scss",
+      "assets/css/style.scss",
+      "assets/images/bg.png",
+      "assets/images/header.png",
+      "assets/images/header_doc.png",
+      "assets/images/usa_gov.png",
+      "assets/openapi.yaml",
+      "general-faqs.md",
+      "gridpoints.md",
+      "index.md",
+      "planned-outages.md",
+      "reporting-issues.md"
+    ],
+    "license_file_found": false,
+    "retained_metadata": "nws-schema-facts.json",
+    "action": "No license invented. Removed complete schema/README research copies, retaining minimal factual metadata and exact upstream references."
+  },
+  "nasa": {
+    "repository": "https://github.com/nasa-gibs/worldview",
+    "commit": "176a21fe9b01335ae9d4a6c8117515e3dbd1bd63",
+    "license_source_url": "https://github.com/nasa-gibs/worldview/blob/176a21fe9b01335ae9d4a6c8117515e3dbd1bd63/LICENSE.md",
+    "retained_license": "nasa-worldview-LICENSE.md",
+    "license_sha256": "1bed490d41826d42364775cc87a3fb966820a7f13e69aedd8a6307e58787cd7b",
+    "description": "Unmodified upstream NASA Open Source Agreement v1.3 notice retained with source metadata/documentation. No NASA implementation code is imported into the application."
+  }
+}

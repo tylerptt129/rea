@@ -1,0 +1,194 @@
+[
+  {
+    "file": "iem-nexrad-mosaic-source.phtml",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/htdocs/docs/nexrad_mosaic/index.phtml",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "90d30d11db5d356c14d991a58f2258fce9de884fe0a060c72ede47ebd63748b7",
+    "bytes": 10728
+  },
+  {
+    "file": "iem-radar-wmst-example.html",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/htdocs/docs/nexrad_mosaic/wmst.html",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "28312b950968eb3e2e7e024e99d5994b8a70c0cbf9188e4bae211f83080381b0",
+    "bytes": 3899
+  },
+  {
+    "file": "iem-n0q-time.map",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/data/wms/nexrad/n0q-t.map",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "58ce6951cda579bb31a2cb87fdca8169c69f0fd690daea884cfe331c3d904957",
+    "bytes": 2167
+  },
+  {
+    "file": "iem-n0q.map",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/data/wms/nexrad/n0q.map",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "3bdc3b555879dabc11877ae89607e34c2799cbce41d7c58dd5b5eba2262901c9",
+    "bytes": 51015
+  },
+  {
+    "file": "iem-goes-conus-ir.map",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/data/wms/goes/conus_ir.map",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "6388dbbb27f818f5bbd7199f6076d76d89d3059ec834e5def14255e29fbb6f5e",
+    "bytes": 1147
+  },
+  {
+    "file": "iem-goes-conus-vis.map",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/data/wms/goes/conus_vis.map",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "b2090176d595bdb8dab8247f82d12c9d15caff03d61cc766c68348d8f52f2cd0",
+    "bytes": 1162
+  },
+  {
+    "file": "iem-goes-conus-wv.map",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/data/wms/goes/conus_wv.map",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "7a4bc902b6596812682159bef026dee86e48075ad88d8da3c55f8c45bc6771e1",
+    "bytes": 1147
+  },
+  {
+    "file": "iem-radar-api.py",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/pylib/iemweb/json/radar.py",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "9bf4b730b08bb83c881b328e02797a6037ba055136063ef1582e3ad2a6aa1542",
+    "bytes": 10001
+  },
+  {
+    "file": "iem-tilecache.cfg",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/pylib/iemweb/c/tilecache.cfg",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "bc11c9521f5179a3ad8fffa2fc06bc092a4311c0e336cda649113be82f75aa4c",
+    "bytes": 6154
+  },
+  {
+    "file": "iem-tilecache-dispatch.py",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/pylib/iemweb/tilecache_dispatch.py",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "f91ddd5bace085ceece1eab0da464d103be0cd7ee30be58b48fd44c9d8befd91",
+    "bytes": 2965
+  },
+  {
+    "file": "iem-tms-api.py",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/pylib/iemweb/json/tms.py",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "755c95e79692936e3fb220b1aa4f24eb1b601960c0c505c4822d65598ed586fa",
+    "bytes": 2167
+  },
+  {
+    "file": "iem-ridge-current-api.py",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/pylib/iemweb/json/ridge_current.py",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "93b4919bb1e64c5f23e9fd04bfb242e2230d3bb6c7f7dd6c2f5bbdc6598ede96",
+    "bytes": 1946
+  },
+  {
+    "file": "iem-LICENSE.txt",
+    "source_url": "https://github.com/akrherz/iem/blob/3039e621fde72c23185584b8a84f15ba59ddb3c8/LICENSE",
+    "upstream_commit": "3039e621fde72c23185584b8a84f15ba59ddb3c8",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "0192f3fb56bef95d33d76d8c415af2c6906f66dd49aa2c30615a6c9f4b98e660",
+    "bytes": 1065
+  },
+  {
+    "file": "nasa-goes-ir-layer.json",
+    "source_url": "https://github.com/nasa-gibs/worldview/blob/176a21fe9b01335ae9d4a6c8117515e3dbd1bd63/config/default/common/config/wv.json/layers/goes/GOES-East_ABI_Band13_Clean_Infrared.json",
+    "upstream_commit": "176a21fe9b01335ae9d4a6c8117515e3dbd1bd63",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "a377d50b9c89e8a319c4dffaf8acf0eff7b8d90084fb236faeacc0efc84270d9",
+    "bytes": 778
+  },
+  {
+    "file": "nasa-goes-ir-documentation.md",
+    "source_url": "https://github.com/nasa-gibs/worldview/blob/176a21fe9b01335ae9d4a6c8117515e3dbd1bd63/config/default/common/config/metadata/layers/goes/GOES-East_ABI_Band13_Clean_Infrared.md",
+    "upstream_commit": "176a21fe9b01335ae9d4a6c8117515e3dbd1bd63",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "d6b4968881154aeec4f62ce453374e8ede7ebd8af0f9a03972425964b95b3685",
+    "bytes": 1294
+  },
+  {
+    "file": "nasa-goes-visible-layer.json",
+    "source_url": "https://github.com/nasa-gibs/worldview/blob/176a21fe9b01335ae9d4a6c8117515e3dbd1bd63/config/default/common/config/wv.json/layers/goes/GOES-East_ABI_Band2_Red_Visible_1km.json",
+    "upstream_commit": "176a21fe9b01335ae9d4a6c8117515e3dbd1bd63",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "2c1899a606023eaa29df4a1cf4881e961cd867b981e3313f91aa494a59fec43e",
+    "bytes": 724
+  },
+  {
+    "file": "nasa-goes-visible-documentation.md",
+    "source_url": "https://github.com/nasa-gibs/worldview/blob/176a21fe9b01335ae9d4a6c8117515e3dbd1bd63/config/default/common/config/metadata/layers/goes/GOES-East_ABI_Band2_Red_Visible_1km.md",
+    "upstream_commit": "176a21fe9b01335ae9d4a6c8117515e3dbd1bd63",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "bab3eba4e1483702cafe935cc63e96124ff42bfba6b135aa789c0db990ad6d3a",
+    "bytes": 1301
+  },
+  {
+    "file": "nasa-gibs-sources.json",
+    "source_url": "https://github.com/nasa-gibs/worldview/blob/176a21fe9b01335ae9d4a6c8117515e3dbd1bd63/config/default/release/config/wv.json/sources.json",
+    "upstream_commit": "176a21fe9b01335ae9d4a6c8117515e3dbd1bd63",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "51a9ede94b78dba603fc14fbfc6154d9bb415f046635f3922dcffad572461ab3",
+    "bytes": 5820
+  },
+  {
+    "file": "nasa-worldview-LICENSE.md",
+    "source_url": "https://github.com/nasa-gibs/worldview/blob/176a21fe9b01335ae9d4a6c8117515e3dbd1bd63/LICENSE.md",
+    "upstream_commit": "176a21fe9b01335ae9d4a6c8117515e3dbd1bd63",
+    "retained_at": "2026-10-25T07:10:07.934679+00:00",
+    "retrieval": "git shallow filtered checkout; git show exact HEAD blob",
+    "sha256": "1bed490d41826d42364775cc87a3fb966820a7f13e69aedd8a6307e58787cd7b",
+    "bytes": 13187
+  },
+  {
+    "file": "nws-schema-facts.json",
+    "retained_at": "2026-10-25T07:36:04.333506+00:00",
+    "kind": "independently authored factual source/attribution metadata",
+    "sha256": "178b6bc8f9a64b77e513fbbf15ad51b40713513be938c791515c5756163ee9c4",
+    "bytes": 3476
+  },
+  {
+    "file": "license-review.json",
+    "retained_at": "2026-10-25T07:36:04.333506+00:00",
+    "kind": "independently authored factual source/attribution metadata",
+    "sha256": "6e70ae0dd5b027905dc134e01ff62dfdcf2c438f910d18716b48ddae7bff0f05",
+    "bytes": 2089
+  },
+  {
+    "file": "ATTRIBUTION.md",
+    "retained_at": "2026-10-25T07:36:21.639931+00:00",
+    "kind": "independently authored research attribution",
+    "sha256": "2dac4f52da03bb5681eca1a40cbbe7134737fb1bb815716652d58a4beb4f07cd",
+    "bytes": 2462
+  }
+]

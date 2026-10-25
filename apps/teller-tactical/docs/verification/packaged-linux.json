@@ -1,0 +1,360 @@
+{
+  "status": "passed",
+  "startedAt": "2026-10-25T07:50:33.688Z",
+  "dataset": "SYNTHETIC FIXTURE; does not verify live weather or macOS",
+  "executable": "/workspace/teller-tactical/release/Teller Tactical-linux-x64/Teller Tactical",
+  "profile": "/workspace/teller-tactical/test-results/desktop-profile-gBwEoV",
+  "host": {
+    "platform": "linux",
+    "arch": "x64"
+  },
+  "rendering": "Explicit test-only SwiftShader software ANGLE; Electron sandbox remains enabled.",
+  "launchFlags": [
+    "--use-angle=swiftshader",
+    "--enable-unsafe-swiftshader",
+    "--remote-debugging-address=127.0.0.1"
+  ],
+  "checks": [
+    {
+      "name": "packaged native window launches with current weather frame and normal sandbox",
+      "status": "passed",
+      "elapsedMs": 3992
+    },
+    {
+      "name": "packaged frame controls change actual frame and raster pixels",
+      "status": "passed",
+      "elapsedMs": 1752
+    },
+    {
+      "name": "packaged preferences are saved through the UI and its own gateway",
+      "status": "passed",
+      "elapsedMs": 4109
+    },
+    {
+      "name": "fresh packaged process restores property and theme from disk",
+      "status": "passed",
+      "elapsedMs": 5949
+    },
+    {
+      "name": "native window close flushes the latest debounced preferences before destruction",
+      "status": "passed",
+      "elapsedMs": 5676
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "limitations": [
+    "Instrumented test launch, not a calibrated OS cold/warm launch benchmark.",
+    "Synthetic fixtures do not establish live-source behavior.",
+    "Linux software rendering does not verify Apple Silicon or Mac packaging."
+  ],
+  "firstLaunch": {
+    "runtime": {
+      "packaged": true,
+      "version": "0.1.0",
+      "platform": "linux",
+      "arch": "x64",
+      "userData": "/workspace/teller-tactical/test-results/desktop-profile-gBwEoV",
+      "electron": "45.0.0",
+      "node": "24.22.0",
+      "sandboxDisabledByFlag": false,
+      "windows": [
+        {
+          "sandbox": true,
+          "contextIsolation": true,
+          "nodeIntegration": false
+        }
+      ],
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "disabled_software",
+        "vulkan": "disabled_off",
+        "webgl": "enabled",
+        "webgpu": "unavailable_software",
+        "webgpu_on_vk_via_gl_interop": "disabled_off",
+        "webnn": "disabled_off"
+      },
+      "processes": [
+        {
+          "type": "Browser",
+          "memoryKiB": {
+            "workingSetSize": 179596,
+            "peakWorkingSetSize": 181196
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 0.84,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        },
+        {
+          "type": "GPU",
+          "memoryKiB": {
+            "workingSetSize": 238788,
+            "peakWorkingSetSize": 249344
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 8.3,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        },
+        {
+          "type": "Utility",
+          "memoryKiB": {
+            "workingSetSize": 86460,
+            "peakWorkingSetSize": 86460
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 0.14,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        },
+        {
+          "type": "Tab",
+          "memoryKiB": {
+            "workingSetSize": 186136,
+            "peakWorkingSetSize": 186136
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 0.75,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        }
+      ]
+    },
+    "launchToReadyMs": 3712
+  },
+  "frameChange": {
+    "before": "202601151830",
+    "after": "202601151825",
+    "pixelsChanged": true
+  },
+  "savedPreferences": {
+    "theme": "light",
+    "layout": 1,
+    "opacity": 0.82,
+    "speed": 500,
+    "property": {
+      "latitude": 38.95,
+      "longitude": -105.1,
+      "elevationFt": 9210
+    },
+    "camera": {
+      "center": [
+        -105.1,
+        38.95
+      ],
+      "zoom": 10,
+      "bearing": 0,
+      "pitch": 0
+    },
+    "views": [],
+    "linkCamera": true,
+    "linkTime": true,
+    "showAlerts": true,
+    "showObservations": true,
+    "layersOpen": true,
+    "weatherOpen": true
+  },
+  "pendingPreferenceAtQuit": {
+    "opacity": 0.67
+  },
+  "secondLaunch": {
+    "runtime": {
+      "packaged": true,
+      "version": "0.1.0",
+      "platform": "linux",
+      "arch": "x64",
+      "userData": "/workspace/teller-tactical/test-results/desktop-profile-gBwEoV",
+      "electron": "45.0.0",
+      "node": "24.22.0",
+      "sandboxDisabledByFlag": false,
+      "windows": [
+        {
+          "sandbox": true,
+          "contextIsolation": true,
+          "nodeIntegration": false
+        }
+      ],
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "disabled_software",
+        "vulkan": "disabled_off",
+        "webgl": "enabled",
+        "webgpu": "unavailable_software",
+        "webgpu_on_vk_via_gl_interop": "disabled_off",
+        "webnn": "disabled_off"
+      },
+      "processes": [
+        {
+          "type": "Browser",
+          "memoryKiB": {
+            "workingSetSize": 186016,
+            "peakWorkingSetSize": 186016
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 1.28,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        },
+        {
+          "type": "GPU",
+          "memoryKiB": {
+            "workingSetSize": 246664,
+            "peakWorkingSetSize": 257432
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 11,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        },
+        {
+          "type": "Utility",
+          "memoryKiB": {
+            "workingSetSize": 86876,
+            "peakWorkingSetSize": 86876
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 0.17,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        },
+        {
+          "type": "Tab",
+          "memoryKiB": {
+            "workingSetSize": 189012,
+            "peakWorkingSetSize": 206608
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 1.02,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        }
+      ]
+    },
+    "launchToReadyMs": 4485
+  },
+  "restoredProperty": {
+    "latitude": 38.95,
+    "longitude": -105.1,
+    "elevationFt": 9210
+  },
+  "pendingPreferenceAtWindowClose": {
+    "opacity": 0.73
+  },
+  "windowCloseMethod": "BrowserWindow.close() in the Electron main process, matching the native window close button",
+  "thirdLaunch": {
+    "runtime": {
+      "packaged": true,
+      "version": "0.1.0",
+      "platform": "linux",
+      "arch": "x64",
+      "userData": "/workspace/teller-tactical/test-results/desktop-profile-gBwEoV",
+      "electron": "45.0.0",
+      "node": "24.22.0",
+      "sandboxDisabledByFlag": false,
+      "windows": [
+        {
+          "sandbox": true,
+          "contextIsolation": true,
+          "nodeIntegration": false
+        }
+      ],
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "disabled_software",
+        "vulkan": "disabled_off",
+        "webgl": "enabled",
+        "webgpu": "unavailable_software",
+        "webgpu_on_vk_via_gl_interop": "disabled_off",
+        "webnn": "disabled_off"
+      },
+      "processes": [
+        {
+          "type": "Browser",
+          "memoryKiB": {
+            "workingSetSize": 186268,
+            "peakWorkingSetSize": 186268
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 1.7,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        },
+        {
+          "type": "GPU",
+          "memoryKiB": {
+            "workingSetSize": 246284,
+            "peakWorkingSetSize": 256772
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 11.69,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        },
+        {
+          "type": "Utility",
+          "memoryKiB": {
+            "workingSetSize": 87268,
+            "peakWorkingSetSize": 87268
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 0.42,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        },
+        {
+          "type": "Tab",
+          "memoryKiB": {
+            "workingSetSize": 178700,
+            "peakWorkingSetSize": 197096
+          },
+          "cpu": {
+            "cumulativeCPUUsage": 1.07,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          }
+        }
+      ]
+    },
+    "launchToReadyMs": 5437
+  },
+  "completedAt": "2026-10-25T07:50:55.169Z"
+}

@@ -1,0 +1,87 @@
+name: Apple Silicon release validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: Authorized Mac runner (hosted use may consume existing Actions minutes)
+        type: choice
+        required: true
+        default: macos-15
+        options:
+          - macos-15
+          - self-hosted
+      mode:
+        description: Developer validation or signed/notarized distribution
+        type: choice
+        required: true
+        default: developer
+        options:
+          - developer
+          - distribution
+
+permissions:
+  contents: read
+
+concurrency:
+  group: teller-macos-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  native-release:
+    runs-on: ${{ inputs.runner == 'self-hosted' && fromJSON('["self-hosted","macOS","ARM64"]') || 'macos-15' }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Require native Apple Silicon and authorized distribution keychain
+        env:
+          RELEASE_MODE: ${{ inputs.mode }}
+          RUNNER_SELECTION: ${{ inputs.runner }}
+        run: |
+          set -euo pipefail
+          test "$(uname -s)" = Darwin
+          test "$(uname -m)" = arm64
+          if [ "$RELEASE_MODE" = distribution ] && [ "$RUNNER_SELECTION" != self-hosted ]; then
+            echo 'Distribution requires the explicitly authorized self-hosted Mac with its preconfigured signing/notary keychain.' >&2
+            exit 1
+          fi
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install exact development toolchain and locked dependencies
+        run: |
+          set -euo pipefail
+          npm install --global npm@11.16.0
+          npm ci --no-audit --no-fund
+          npm exec install-electron
+      - name: Build, sign and execute native fixture/live acceptance
+        env:
+          TELLER_MAC_SIGN_IDENTITY: ${{ vars.TELLER_MAC_SIGN_IDENTITY }}
+          TELLER_NOTARY_PROFILE: ${{ vars.TELLER_NOTARY_PROFILE }}
+          TELLER_MAC_KEYCHAIN: ${{ vars.TELLER_MAC_KEYCHAIN }}
+          RELEASE_MODE: ${{ inputs.mode }}
+        run: node scripts/release-mac.mjs --mode "$RELEASE_MODE"
+      - name: Retain acceptance evidence even when a gate fails
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: teller-macos-acceptance-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            release/macos-release.json
+            release/macos-verification/*.json
+            release/macos-verification/*.txt
+            release/macos-verification/*.png
+      - name: Retain only a successfully gated application archive
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: teller-macos-${{ inputs.mode }}-${{ github.run_id }}
+          if-no-files-found: error
+          path: |
+            release/Teller-Tactical-*-mac-arm64-DEVELOPER-NOT-NOTARIZED.zip
+            release/Teller-Tactical-*-mac-arm64-SIGNED-NOTARIZED.zip
+            release/macos-release.json

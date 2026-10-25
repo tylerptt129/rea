@@ -1,0 +1,87 @@
+name: Teller Tactical native Mac acceptance
+run-name: Teller Tactical Mac acceptance · ${{ github.sha }}
+
+on:
+  push:
+    branches: [teller-tactical-release]
+    paths:
+      - apps/teller-tactical/**
+      - .github/workflows/teller-macos-release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: teller-native-mac-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apple-silicon:
+    runs-on: macos-15
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/teller-tactical
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Require actual native Apple Silicon
+        run: |
+          set -euo pipefail
+          test "$(uname -s)" = Darwin
+          test "$(uname -m)" = arm64
+          sw_vers
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: apps/teller-tactical/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/teller-tactical/package-lock.json
+      - name: Install pinned toolchain and locked dependencies
+        run: |
+          set -euo pipefail
+          npm install --global npm@11.16.0
+          npm ci --no-audit --no-fund
+          npm exec install-electron
+      - name: Build natively, sign developer bundle, and test real packaged weather
+        run: node scripts/release-mac.mjs --mode developer
+      - name: Record actual acceptance status
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib
+          root=pathlib.Path('release')
+          records=[]
+          for name in ['macos-release.json','macos-verification/acceptance.json','macos-verification/backend-live.json','macos-verification/packaged-live.json','macos-verification/packaged-fixture.json']:
+              path=root/name
+              if path.is_file():
+                  data=json.loads(path.read_text())
+                  records.append({'file':name,**{k:data[k] for k in ['status','host','fixture','error','checks','distributionReady','artifact'] if k in data}})
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('# Teller Tactical native Apple Silicon acceptance\n\n')
+              out.write('This is a developer candidate. A passing local signature is not notarized distribution.\n\n')
+              out.write('```json\n'+json.dumps(records,indent=2)+'\n```\n')
+          print(json.dumps(records,indent=2))
+          PY
+      - name: Retain real diagnostics and screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: teller-native-mac-evidence-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            apps/teller-tactical/release/macos-release.json
+            apps/teller-tactical/release/macos-verification/*.json
+            apps/teller-tactical/release/macos-verification/*.txt
+            apps/teller-tactical/release/macos-verification/*.png
+      - name: Retain only the gated developer app
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: teller-mac-arm64-developer-${{ github.run_id }}
+          if-no-files-found: error
+          path: |
+            apps/teller-tactical/release/Teller-Tactical-*-mac-arm64-DEVELOPER-NOT-NOTARIZED.zip
+            apps/teller-tactical/release/macos-release.json

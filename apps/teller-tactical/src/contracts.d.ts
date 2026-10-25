@@ -1,0 +1,4 @@
+export interface Frame { id:string; time:string; label?:string; verified:boolean }
+export interface Product { id:string; name:string; kind:'radar'|'satellite'; source:string; sourceUrl:string; units:string|null; projection:string; cadenceMinutes:number|null; frames:Frame[]; legendUrl?:string; coverage:string; notes:string[]; numericalProbe:boolean; site?:{id:string;name:string;latitude:number;longitude:number}; range?:[number,number]; colors?:string[] }
+export interface Catalog { products:Product[]; errors:{source:string;message:string}[]; retrievedAt:string; fixture:boolean }
+export interface PointWeather { point:{latitude:number;longitude:number;elevationM:number|null;gridElevationM:number|null;description:string}; retrievedAt:string; forecastUpdated:string|null; periods:any[]; hourly:any[]; observations:any[]; alerts:any[]; grids:{[key:string]:{uom:string;values:{validTime:string;value:number|null}[]}}; errors:string[]; fixture:boolean }

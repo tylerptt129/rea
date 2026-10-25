@@ -1,0 +1,337 @@
+""".. title:: IEM Archived RADAR Metadata Service
+
+Return to `API Services </api/#json>`_
+
+Documentation for /json/radar.py
+--------------------------------
+
+This service provides metadata about available NEXRAD RADAR data that the
+IEM has archived.  The data is stored in a directory structure that is
+organized by radar site and product type.  The data is stored in PNG format
+and is available for direct download.
+
+The `IEM One <https://mesonet.agron.iastate.edu/one/>`_ makes heavy usage of
+this API endpoint.
+
+Changelog
+---------
+
+- 2026-04-28: A bug was squashed with lat/lon always being enabled
+  for operation=available, which always limited the response to nearby RADARs
+  to that point.
+- 2024-07-24: Initial documentation release and pydantic validation
+
+Example Usage
+-------------
+
+Provide metadata for N0B products for YUX radar between 8 and 10 UTC on
+July 24th, 2024:
+
+https://mesonet.agron.iastate.edu/json/radar?operation=list&product=N0B\
+&radar=YUX&start=2024-07-24T08:00Z&end=2024-07-24T10:00Z
+
+Provide available RADAR products for the USCOMP (IEM generated mosaic) around
+the time 23:35 UTC on July 22nd, 2024:
+
+https://mesonet.agron.iastate.edu/json/radar?radar=USCOMP\
+&start=2024-07-22T23:35:00Z&operation=products
+
+Provide an approximation of available RADARs at 26.14N and 80.48W valid at
+15:20 UTC on June 30th, 2024:
+
+https://mesonet.agron.iastate.edu/json/radar?lat=26.14&lon=-80.48&\
+start=2024-06-30T15:20:00Z&operation=available
+
+"""
+
+import glob
+import json
+import os.path
+from datetime import datetime, timedelta
+from typing import Annotated
+
+from pydantic import AwareDatetime, Field
+from pyiem.database import get_sqlalchemy_conn, sql_helper
+from pyiem.util import utc
+from pyiem.web.fields import (
+    CALLBACK_FIELD,
+    LATITUDE_FIELD_OPTIONAL,
+    LONGITUDE_FIELD_OPTIONAL,
+)
+from pyiem.webutil import CGIModel, iemapp
+
+from iemweb.util import json_response_dict
+
+BASEDIR = "/mesonet/ARCHIVE/data"
+NIDS = {
+    "N0B": "Base Reflectivity (Super Res)",
+    "N0Q": "Base Reflectivity (High Res)",
+    "N0U": "Base Radial Velocity (High Res)",
+    "N0S": "Storm Relative Radial Velocity",
+    "NET": "Echo Tops",
+    "N0R": "Base Reflectivity",
+    "N0V": "Base Radial Velocity",
+    "N0Z": "Base Reflectivity",
+    "TR0": "TDWR Base Reflectivity",
+    "TV0": "TDWR Radial Velocity",
+    "TZL": "TDWR Base Reflectivity",
+}
+
+
+class Schema(CGIModel):
+    """See how we are called."""
+
+    callback: CALLBACK_FIELD = None
+    end: Annotated[
+        AwareDatetime | None,
+        Field(
+            description="End of time period to search for data",
+        ),
+    ] = None
+    lat: LATITUDE_FIELD_OPTIONAL = None
+    lon: LONGITUDE_FIELD_OPTIONAL = None
+    operation: Annotated[
+        str,
+        Field(
+            description="The operation to perform, either list or available",
+            pattern="^(list|available|products)$",
+        ),
+    ] = "list"
+    product: Annotated[
+        str,
+        Field(
+            description="The NEXRAD product to search for data",
+            max_length=3,
+        ),
+    ] = "N0B"
+    radar: Annotated[
+        str,
+        Field(
+            description="The RADAR site to search for data",
+            max_length=10,
+        ),
+    ] = "DMX"
+    start: Annotated[
+        AwareDatetime | None,
+        Field(
+            description="Find RADARs available at the given time, default now",
+        ),
+    ] = None
+
+
+def available_radars(query: Schema):
+    """
+    Return available RADAR sites for the given location and date!
+    """
+    lat = query.lat
+    lon = query.lon
+    start_gts = query.start
+    if start_gts is None:
+        start_gts = utc()
+    params = {
+        "lat": lat,
+        "lon": lon,
+        "start": start_gts,
+    }
+    root = json_response_dict({"radars": []})
+    if lat is None or lon is None:
+        sql = """
+        select id, name,
+        ST_x(geom) as lon, ST_y(geom) as lat, network
+        from stations where network in ('NEXRAD','ASR4','ASR11','TWDR')
+        ORDER by id asc"""
+    else:
+        sql = """
+        select id, name, ST_x(geom) as lon, ST_y(geom) as lat, network,
+        ST_Distance(geom, ST_POINT(:lon, :lat, 4326)) as dist
+        from stations where network in ('NEXRAD','ASR4','ASR11','TWDR')
+        and ST_Distance(geom, ST_POINT(:lon, :lat, 4326)) < 3
+        ORDER by dist asc
+        """
+    root["radars"].append(
+        {
+            "id": "USCOMP",
+            "name": "National Composite",
+            "lat": 42.5,
+            "lon": -95,
+            "type": "COMPOSITE",
+        }
+    )
+    with get_sqlalchemy_conn("mesosite") as pgconn:
+        res = pgconn.execute(sql_helper(sql), params)
+        for row in res:
+            radar = row[0]
+            if not os.path.isdir(
+                start_gts.strftime(f"{BASEDIR}/%Y/%m/%d/GIS/ridge/{radar}")
+            ):
+                continue
+            root["radars"].append(
+                {
+                    "id": radar,
+                    "name": row[1],
+                    "lat": row[3],
+                    "lon": row[2],
+                    "type": row[4],
+                }
+            )
+    return root
+
+
+def find_scans(root: dict, radar, product, sts, ets):
+    """Find scan times with data
+
+    Note that we currently have a 500 length hard coded limit, so if we are
+    interested in a long term time period, we should lengthen out our
+    interval to look for files
+
+    Args:
+      root (dict): where we write our findings to
+      radar (string): radar we are interested in
+      product (string): NEXRAD product of interest
+      sts (datetime): start time to look for data
+      ets (datetime): end time to look for data
+    """
+    now = sts
+    times = []
+    if radar == "USCOMP":
+        # These are every 5 minutes, so 288 per day
+        now -= timedelta(minutes=now.minute % 5)
+        while now < ets:
+            if os.path.isfile(
+                now.strftime(
+                    f"{BASEDIR}/%Y/%m/%d/GIS/uscomp/"
+                    f"{product.lower()}_%Y%m%d%H%M.png"
+                )
+            ):
+                times.append({"ts": now.strftime("%Y-%m-%dT%H:%MZ")})
+            now += timedelta(minutes=5)
+    else:
+        while now < ets:
+            if os.path.isfile(
+                now.strftime(
+                    f"{BASEDIR}/%Y/%m/%d/GIS/ridge/"
+                    f"{radar}/{product}/{radar}_{product}"
+                    "_%Y%m%d%H%M.png"
+                )
+            ):
+                times.append({"ts": now.strftime("%Y-%m-%dT%H:%MZ")})
+            now += timedelta(minutes=1)
+    if len(times) > 500:
+        # Do some filtering
+        interval = int((len(times) / 500.0) + 1)
+        times = times[::interval]
+
+    root["scans"] = times
+
+
+def is_realtime(sts: datetime) -> bool:
+    """
+    Check to see if this time is close to realtime...
+    """
+    if (utc() - sts).total_seconds() > 3600:
+        return False
+    return True
+
+
+def list_files(query: Schema):
+    """
+    List available NEXRAD files based on the form request
+    """
+    radar = query.radar
+    product = query.product
+    start_gts = query.start
+    if start_gts is None:
+        start_gts = utc()
+    end_gts = query.end
+    if end_gts is None:
+        end_gts = start_gts + timedelta(minutes=1)
+    # practical limit here of 10 days
+    if (start_gts + timedelta(days=10)) < end_gts:
+        end_gts = start_gts + timedelta(days=10)
+    root = json_response_dict({"scans": []})
+    find_scans(root, radar, product, start_gts, end_gts)
+    if not root["scans"] and is_realtime(start_gts):
+        now = start_gts - timedelta(minutes=10)
+        find_scans(root, radar, product, now, end_gts)
+
+    return root
+
+
+def list_products(query: Schema):
+    """
+    List available NEXRAD products
+    """
+    radar = query.radar
+    now = query.start
+    if now is None:
+        now = utc()
+    root = json_response_dict({"products": []})
+    if radar == "USCOMP":
+        for dirname in ["N0Q", "N0R"]:
+            testfp = now.strftime(
+                f"{BASEDIR}/%Y/%m/%d/GIS/"
+                f"uscomp/{dirname.lower()}_%Y%m%d0000.png"
+            )
+            if os.path.isfile(testfp):
+                root["products"].append(
+                    {"id": dirname, "name": NIDS.get(dirname, dirname)}
+                )
+    else:
+        basedir = now.strftime(f"{BASEDIR}/%Y/%m/%d/GIS/ridge/{radar}")
+        if os.path.isdir(basedir):
+            for dirname in glob.glob(os.path.join(basedir, "???")):
+                product_id = os.path.basename(dirname)
+                root["products"].append(
+                    {
+                        "id": product_id,
+                        "name": NIDS.get(product_id, product_id),
+                    }
+                )
+    return root
+
+
+def get_mckey(environ: dict) -> str:
+    """Get the key."""
+    return (
+        f"/json/radar.py|{environ['operation']}|{environ['radar']}|"
+        f"{environ['product']}|{environ['start']}|{environ['end']}|"
+        f"{environ['lat']}|{environ['lon']}"
+    ).replace(" ", "")
+
+
+def get_mcexpire(environ: dict) -> int:
+    """Figure out the expiration time for this entry."""
+    if environ["operation"] == "available":
+        return 3600
+    if environ["operation"] == "products":
+        return 3600
+    if (
+        environ["start"] is not None
+        and environ["end"] is not None
+        and environ["end"] < utc()
+    ):
+        return 3600
+    return 60
+
+
+@iemapp(
+    help=__doc__,
+    schema=Schema,
+    memcachekey=get_mckey,
+    memcacheexpire=get_mcexpire,
+)
+def application(environ: dict, start_response: callable):
+    """Answer request."""
+    query: Schema = environ["_cgimodel_schema"]
+
+    data = ""
+    if query.operation == "list":
+        data = list_files(query)
+    elif query.operation == "available":
+        data = available_radars(query)
+    elif query.operation == "products":
+        data = list_products(query)
+
+    payload = json.dumps(data)
+    start_response("200 OK", [("Content-type", "application/json")])
+    return payload
