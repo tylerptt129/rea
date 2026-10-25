@@ -34,6 +34,13 @@ jobs:
           test "$(uname -s)" = Darwin
           test "$(uname -m)" = arm64
           sw_vers
+          python3 - <<'PYNOTE'
+          import json,re,subprocess
+          result=subprocess.run(['/usr/bin/security','find-identity','-v','-p','codesigning'],capture_output=True,text=True)
+          match=re.search(r'(\d+) valid identities found',result.stdout+result.stderr)
+          count=int(match.group(1)) if match else 'unknown'
+          print('::notice title=Native Mac signing context::Apple Silicon runner; installed valid code-signing identities: '+str(count)+'. Developer validation uses local ad-hoc signing; notarized distribution requires Developer ID authority.')
+          PYNOTE
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: apps/teller-tactical/.nvmrc
