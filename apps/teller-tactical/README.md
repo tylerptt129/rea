@@ -1,75 +1,67 @@
 # Teller Tactical
 
-An independent Colorado-first desktop weather workstation. REA remains untouched in the sibling checkout. Read [the capability matrix](docs/capabilities.md) before interpreting the scope: **this build is not yet operationally validated or ready for weather decisions**. A native Apple Silicon CI run has launched the application with hardware GPU rendering and real radar, visible/IR satellite, NWS data, and playback, but the complete release gate failed. Current probe and satellite-legend fixes still require a new Mac run; fixture tests do not establish live reliability.
+An independent Colorado-first desktop weather workstation. **The core live Apple Silicon workflow and user-local installation passed native acceptance** on macOS 15.7.9 arm64 in [run 40247555425](https://github.com/tylerptt129/rea/actions/runs/40247555425). Real radar, visible/IR satellite, NWS data, playback, refresh and interruption/recovery were exercised with the normal hardware GPU and security path. See [verified capabilities and remaining features](docs/capabilities.md); advanced products and long-duration performance remain unfinished.
 
-## Install and run on an Apple Silicon Mac
+## Install on an Apple Silicon Mac
 
-Build from this source with Node.js 24.22.1 or later. There is no accepted notarized user download yet:
-
-```sh
-npm ci
-npm exec install-electron
-npm run build
-npm start
-```
-
-No weather credentials are required by the implemented public-source adapters. Keep Internet access available for IEM, NWS, NASA GIBS (when a trustworthy satellite catalog is returned), and the CARTO/OSM basemap. No WSV3 private server is used. Do not disable Gatekeeper or other OS protections. The earlier Linux cross-build is unsigned. The authorized native `macos-15` workflow builds an ad-hoc developer candidate; its runner reported zero valid code-signing identities. Ad-hoc signing is not Developer ID signing or notarization. A user-local source build remains supported without a Developer ID identity; keep normal macOS security protections enabled. Full native acceptance and signed distribution remain outstanding. See [native Mac progress](docs/VERIFICATION.md#native-apple-silicon-progress).
-
-## Local Mac installation
-
-On an Apple Silicon Mac, use the additive release branch and install the pinned dependencies:
+Use macOS 13 or later, Node.js 24.22.1 or a compatible newer version, npm (pinned to 11.16.0), Git, and Internet access. The recommended local source installation needs no paid Apple account or Developer ID identity:
 
 ```sh
-git clone --branch teller-tactical-release --single-branch https://github.com/tylerptt129/rea.git
-cd rea/apps/teller-tactical
+git clone --branch teller-tactical-release --single-branch https://github.com/tylerptt129/rea.git teller-tactical-mac
+cd teller-tactical-mac/apps/teller-tactical
 npm ci
 npm exec install-electron
 npm run install:mac
 ```
 
-`install:mac` builds an ad-hoc developer bundle, runs native acceptance, verifies the copied signature and executable/ASAR fingerprints, then installs into `~/Applications/Teller Tactical.app` and opens it. An existing installation is retained as a timestamped backup. No Developer ID identity is needed for this local source route; normal macOS security protections remain enabled. Required source/acceptance failures stop installation. This is not a notarized download or an operational-readiness claim.
+The installer builds and ad-hoc signs the app, runs native acceptance, verifies the copied signature and executable/ASAR fingerprints, then installs `~/Applications/Teller Tactical.app` and opens it. It retains an existing installation as a timestamped backup. Source or acceptance failures stop installation. Normal macOS security protections remain enabled.
 
-After an already passing native release, `npm run install:mac -- --from-verified` reuses only the exact validated bundle. Use `--destination /absolute/user/directory` to select another directory within your home or temporary storage, and `--no-open` for automation. The result is written to `release/macos-verification/installed-local.json`.
+No weather credentials are required for implemented public products. Keep access available for IEM, NWS, NASA GIBS and the CARTO/OSM basemap. The application has its own local gateway and no WSV3 private-server dependency.
+
+After a passing native release, `npm run install:mac -- --from-verified` reuses only the exact validated bundle. `--destination /absolute/user/directory` chooses another home/temporary directory; `--no-open` supports automation. The result is saved to `release/macos-verification/installed-local.json`.
+
+A [validated developer artifact](https://github.com/tylerptt129/rea/actions/runs/40247555425/artifacts/12619009605) is available for inspection. It is **ad-hoc signed and not notarized**, with `distributionReady:false`; a downloaded copy may be rejected by normal macOS policy. Use the local source route above and retain security protections. See [release details and checksum](docs/RELEASE.md).
 
 ## First launch
 
-1. The default camera covers Teller County and the Colorado Springs area; the initial forecast is explicitly a Colorado Springs city reference. The app does not know your property location.
-2. Open **Set property coordinates**, enter your actual latitude/longitude, and replace the editable 9,200-foot initial elevation if appropriate. Settings stay on your machine. The forecast request sends the selected coordinates to NWS.
-3. Verify the source status and displayed frame time. **WEATHER UNAVAILABLE**, **STALE / CACHED**, **PARTIAL FRAME**, and **SYNTHETIC TEST DATA** are meaningful conditions; none means live, complete coverage.
-4. Select a product in the upper right of each map. Use the bottom timeline, spacebar, or arrows to play and scrub. The timestamp changes only after the frame is displayed. Linked timelines choose the latest available peer frame at or before the selected time; peer timestamps can differ.
-5. Choose 1/2/4 maps and link cameras as needed. Click the map for a point forecast and, for supported IEM N0Q frames, a source-native radar sample. Probes read the original indexed composite and worldfile, retain nominal source time, and report 0.5 dBZ quantization and coverage limits. Unsupported imagery and index-zero cells report no quantitative value. The new probe has not yet passed live Mac acceptance; displayed RGB colors are never inverted into measurements.
-6. Use **Diagnostics** if feeds fail. **Refresh** retries sources. Last-known cached responses retain original retrieval/observation times and are marked stale on failed refresh.
+1. The default camera covers Teller County and Colorado Springs; the initial forecast is a Colorado Springs city reference. The app does not know your property location.
+2. Open **Set property coordinates**, enter your latitude/longitude, and replace the editable 9,200-foot elevation if needed. Settings stay locally; NWS receives the selected forecast coordinates.
+3. Check source status and displayed frame time. **WEATHER UNAVAILABLE**, **STALE / CACHED**, **PARTIAL FRAME** and **SYNTHETIC TEST DATA** describe meaningful limitations. A successful test does not guarantee future source freshness or complete coverage.
+4. Select a product in each map. Use the timeline, spacebar or arrows to play/scrub; timestamps follow displayed frames. Linked timelines select the latest available peer frame at or before the selected time, so peer timestamps can differ.
+5. Choose 1/2/4 maps and camera links as needed. Click for a point forecast and a supported IEM N0Q source-native radar sample. Probes use indexed source cells/worldfiles with 0.5 dBZ quantization, never inverted display colors. Index zero reports unavailable/null; the successful live test encountered that case, not a nonzero numerical measurement.
+6. Use **Diagnostics** for failures and **Refresh** to retry. Failed refreshes retain original cached source times and show stale status.
 
-NWS forecast update times are not numerical model initialization times. Accumulations require a complete selected set of source intervals; incomplete totals remain unavailable. There is no custom snow ratio, upslope threshold, confidence score, storm tracking, or validated nowcast.
+NWS forecast issue times are not model initialization times. Accumulations require complete source intervals. Raw single-site velocity/dual polarization, terrain 3D, model forecast maps, tracking and validated nowcasting remain unimplemented. There is no custom snow ratio, upslope threshold or confidence score. See [performance evidence](docs/PERFORMANCE.md) for the unmeasured calibrated frame-rate and 30-minute stability targets.
 
-## Browser development and tests
+## Development and tests
 
-The same bundled UI can run from the local gateway. Build before starting it:
+From the application directory:
 
 ```sh
 npm run build
+npm start
+# Browser-only gateway, bound to 127.0.0.1 (default port 4173):
 TELLER_DATA_DIR=/absolute/writable/path npm run dev
-# Gateway binds only to 127.0.0.1 (default port 4173).
 npm test
 npm run test:ui
 npm run test:live
 ```
 
-`test:ui` uses local Chromium and explicit deterministic fixture mode; synthetic radar/satellite/forecasts are prominently labeled. `test:live` always uses a fresh non-fixture cache and fails when source access or meaningful checks fail. Neither tests Apple Silicon rendering. See [live acceptance](docs/LIVE-VALIDATION.md), [release requirements](docs/RELEASE.md), [performance evidence](docs/PERFORMANCE.md), and [task ledger](docs/LEDGER.md).
+`test:ui` uses conspicuously labeled deterministic fixtures. `test:live` uses a fresh non-fixture cache and meaningful source assertions. Native Mac acceptance and installation are separate executed checks documented in [VERIFICATION.md](docs/VERIFICATION.md) and [LIVE-VALIDATION.md](docs/LIVE-VALIDATION.md).
 
 ```sh
-npm run package:mac    # ARM64 package; packaging alone does not pass release gates
-npm run package:linux  # Linux x64 validation package
+npm run package:mac    # Packaging alone does not run the complete release gate.
+npm run package:linux  # Linux x64 validation package.
 ```
 
-Use `TELLER_FIXTURE=1 npm start` only for the conspicuously synthetic demonstration/test workspace. Never use fixture output for weather decisions. Production mode never substitutes synthetic weather when public data fails.
-
-The application is also hosted additively at `apps/teller-tactical` on the authorized [`teller-tactical-release` branch](https://github.com/tylerptt129/rea/tree/teller-tactical-release/apps/teller-tactical). REA main remains unchanged. [Run 40244655567](https://github.com/tylerptt129/rea/actions/runs/40244655567) failed on missing satellite legends and catalog aging after a fresh startup; it is progress evidence, not release approval.
+`TELLER_FIXTURE=1 npm start` is solely a synthetic demonstration/test workspace. Production never substitutes synthetic weather when public sources fail.
 
 ## Data and research
 
-- [Data-source register](docs/data-sources.md): authoritative metadata, product meaning, projections, cadence, limitations, and current terms-verification boundary.
-- [Reference research](docs/research.md): what was actually investigated, including blocked WSV3 access and absence of a reference binary. No WSV3 binary analysis is claimed.
-- [Architecture decisions](docs/ARCHITECTURE.md) and [full request](docs/REQUEST.md).
+The application is hosted additively at `apps/teller-tactical` on the authorized [`teller-tactical-release` branch](https://github.com/tylerptt129/rea/tree/teller-tactical-release/apps/teller-tactical). REA main remains unchanged.
 
-Map context includes public-domain Natural Earth boundaries, CARTO basemaps, and OpenStreetMap attribution. Dependencies and their licenses are retained in the lockfile and distributed packages. Weather products retain provider attribution. Teller Tactical does not redistribute WSV3 code, assets, executables, or credentials.
+- [Data-source register](docs/data-sources.md): product meaning, projections, timing, limitations and source terms-verification scope.
+- [Reference research](docs/research.md): WSV3 source access remains blocked and no authorized reference binary was identified. No WSV3 binary analysis or parity claim is made.
+- [Architecture decisions](docs/ARCHITECTURE.md), [task ledger](docs/LEDGER.md) and [full request](docs/REQUEST.md).
+
+Natural Earth boundaries, CARTO basemaps and OpenStreetMap attribution provide map context. Weather attribution and dependency licenses are retained. Teller Tactical redistributes no WSV3 code, assets, executables or credentials.

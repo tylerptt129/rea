@@ -1,0 +1,472 @@
+{
+  "evidenceType": "GitHub Actions completed job and recorded acceptance annotation extracts; full reports and screenshots retained in linked artifacts",
+  "status": "passed",
+  "runId": 40247555425,
+  "runUrl": "https://github.com/tylerptt129/rea/actions/runs/40247555425",
+  "hostingCommit": "17f51ffe5d29c310ee65231272dc0d6b12a32a91",
+  "canonicalSourceCommit": "632e121bb190cb76175ef182da975753537a11cb",
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "version": "15.7.9"
+  },
+  "reports": {
+    "macos-verification/installed-fixture.json": {
+      "status": "passed",
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "checks": [
+        {
+          "name": "packaged native window launches with current weather frame and normal sandbox",
+          "status": "passed",
+          "elapsedMs": 7047
+        },
+        {
+          "name": "packaged frame controls change actual frame and raster pixels",
+          "status": "passed",
+          "elapsedMs": 844
+        },
+        {
+          "name": "packaged preferences are saved through the UI and its own gateway",
+          "status": "passed",
+          "elapsedMs": 1308
+        },
+        {
+          "name": "fresh packaged process restores property and theme from disk",
+          "status": "passed",
+          "elapsedMs": 4822
+        },
+        {
+          "name": "native window close flushes the latest debounced preferences before destruction",
+          "status": "passed",
+          "elapsedMs": 4553
+        }
+      ]
+    },
+    "macos-verification/installed-local.json": {
+      "status": "passed",
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "version": "15.7.9"
+      },
+      "distributionReady": false,
+      "sourceHealth": "within-startup-budgets",
+      "qualityWarnings": []
+    },
+    "macos-verification/packaged-live.json": {
+      "status": "passed",
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "checks": [
+        {
+          "name": "native packaged application launches with isolated real-data profile and default target GPU",
+          "status": "passed",
+          "elapsedMs": 12569
+        },
+        {
+          "name": "actual recent radar, satellite and NWS data render with source provenance",
+          "status": "passed",
+          "elapsedMs": 275
+        },
+        {
+          "name": "packaged ASAR worker returns source-native radar indices with quantitative or explicit missing semantics",
+          "status": "passed",
+          "elapsedMs": 1038
+        },
+        {
+          "name": "radar frame selection and playback change accepted real frame identities",
+          "status": "passed",
+          "elapsedMs": 1091
+        },
+        {
+          "name": "real visible and infrared satellite textures render, without fixture substitution",
+          "status": "passed",
+          "elapsedMs": 1173
+        },
+        {
+          "name": "source refresh preserves observations and visibly handles elapsed aging",
+          "status": "passed",
+          "elapsedMs": 1187
+        },
+        {
+          "name": "interruption retains source/time and online recovery restores real source data",
+          "status": "passed",
+          "elapsedMs": 116202
+        }
+      ],
+      "sourceHealth": "within-startup-budgets",
+      "qualityWarnings": [],
+      "launchToUsableMs": 12569,
+      "nativeProbe": {
+        "available": false,
+        "value": null,
+        "units": "dBZ",
+        "nativeIndex": 0,
+        "sourceUrl": "https://mesonet.agron.iastate.edu/archive/data/2026/10/26/GIS/uscomp/n0q_202610260000.png",
+        "worldfileUrl": "https://mesonet.agron.iastate.edu/archive/data/2026/10/26/GIS/uscomp/n0q_202610260000.wld",
+        "retrievedAt": "2026-10-26T00:05:45.737Z",
+        "stale": false,
+        "cell": {
+          "column": 4236,
+          "row": 2233,
+          "width": 12200,
+          "height": 5400,
+          "center": {
+            "longitude": -104.82,
+            "latitude": 38.835
+          },
+          "bounds": {
+            "west": -104.82249999999999,
+            "east": -104.8175,
+            "south": 38.832499999999996,
+            "north": 38.8375
+          },
+          "corners": [
+            {
+              "longitude": -104.82249999999999,
+              "latitude": 38.8375
+            },
+            {
+              "longitude": -104.8175,
+              "latitude": 38.8375
+            },
+            {
+              "longitude": -104.8175,
+              "latitude": 38.832499999999996
+            },
+            {
+              "longitude": -104.82249999999999,
+              "latitude": 38.832499999999996
+            }
+          ],
+          "resolution": {
+            "projection": "EPSG:4326",
+            "units": "degrees",
+            "columnVector": [
+              0.005,
+              0
+            ],
+            "rowVector": [
+              0,
+              -0.005
+            ]
+          },
+          "sampling": "nearest native pixel center; no spatial interpolation"
+        },
+        "latitude": 38.8339,
+        "longitude": -104.8214,
+        "observationTime": "2026-10-26T00:00:00.000Z",
+        "quantizationDbz": 0.5,
+        "limitations": [
+          "Quantized IEM provider composite, not raw single-site radar or a vertical reflectivity profile.",
+          "Source mosaic time is nominal; contributing radar inputs may be up to15 minutes old.",
+          "Terrain blockage, beam overshoot, attenuation, clutter processing and missing source coverage limit interpretation.",
+          "Index0 has no quantitative value; it cannot establish no precipitation or distinguish missing coverage."
+        ],
+        "worldfileRetrievedAt": "2026-10-26T00:05:44.762Z",
+        "reason": "The provider pixel has no quantitative value; missing coverage and no echo cannot be distinguished.",
+        "fixture": false,
+        "frameId": "202610260000",
+        "appArchiveVerified": true,
+        "status": "passed",
+        "workerBackedNativeIndexVerified": true,
+        "liveQuantitativeValueVerified": false,
+        "productId": "iem-n0q",
+        "repeatedSampleStable": true
+      }
+    },
+    "macos-verification/backend-live.json": {
+      "status": "passed",
+      "checks": [
+        {
+          "name": "gateway-live-mode",
+          "status": "passed",
+          "durationMs": 23,
+          "evidence": {
+            "fixture": false,
+            "version": "0.1.0"
+          }
+        },
+        {
+          "name": "nws-point-weather",
+          "status": "passed",
+          "durationMs": 874,
+          "evidence": {
+            "forecastPeriods": 14,
+            "forecastUpdated": "2026-10-25T23:41:23+00:00",
+            "forecastSource": "National Weather Service",
+            "observations": [
+              {
+                "stationId": "KCOS",
+                "timestamp": "2026-10-25T23:40:00+00:00",
+                "retrievedAt": "2026-10-26T00:05:22.603Z",
+                "sourceUrl": "https://api.weather.gov/stations/KCOS/observations/latest",
+                "stale": false
+              },
+              {
+                "stationId": "KAFF",
+                "timestamp": "2026-10-25T22:40:00+00:00",
+                "retrievedAt": "2026-10-26T00:05:22.562Z",
+                "sourceUrl": "https://api.weather.gov/stations/KAFF/observations/latest",
+                "stale": false
+              },
+              {
+                "stationId": "KFCS",
+                "timestamp": "2026-10-25T23:15:00+00:00",
+                "retrievedAt": "2026-10-26T00:05:22.537Z",
+                "sourceUrl": "https://api.weather.gov/stations/KFCS/observations/latest",
+                "stale": false
+              }
+            ],
+            "alerts": 0,
+            "alertStatus": {
+              "expired": 0,
+              "unknownExpiry": 0
+            },
+            "sources": [
+              {
+                "name": "point-discovery",
+                "sourceUrl": "https://api.weather.gov/points/38.8339,-104.8214",
+                "retrievedAt": "2026-10-26T00:05:22.190Z",
+                "stale": false
+              },
+              {
+                "name": "alerts",
+                "sourceUrl": "https://api.weather.gov/alerts/active?point=38.8339,-104.8214",
+                "retrievedAt": "2026-10-26T00:05:22.318Z",
+                "stale": false
+              },
+              {
+                "name": "forecast",
+                "sourceUrl": "https://api.weather.gov/gridpoints/PUB/90,91/forecast",
+                "retrievedAt": "2026-10-26T00:05:22.399Z",
+                "stale": false
+              },
+              {
+                "name": "hourly-forecast",
+                "sourceUrl": "https://api.weather.gov/gridpoints/PUB/90,91/forecast/hourly",
+                "retrievedAt": "2026-10-26T00:05:22.401Z",
+                "stale": false
+              },
+              {
+                "name": "forecast-grid",
+                "sourceUrl": "https://api.weather.gov/gridpoints/PUB/90,91",
+                "retrievedAt": "2026-10-26T00:05:22.409Z",
+                "stale": false
+              },
+              {
+                "name": "observation-stations",
+                "sourceUrl": "https://api.weather.gov/gridpoints/PUB/90,91/stations",
+                "retrievedAt": "2026-10-26T00:05:22.471Z",
+                "stale": false
+              },
+              {
+                "name": "observation-KFCS",
+                "sourceUrl": "https://api.weather.gov/stations/KFCS/observations/latest",
+                "retrievedAt": "2026-10-26T00:05:22.537Z",
+                "stale": false
+              },
+              {
+                "name": "observation-KAFF",
+                "sourceUrl": "https://api.weather.gov/stations/KAFF/observations/latest",
+                "retrievedAt": "2026-10-26T00:05:22.562Z",
+                "stale": false
+              },
+              {
+                "name": "observation-KCOS",
+                "sourceUrl": "https://api.weather.gov/stations/KCOS/observations/latest",
+                "retrievedAt": "2026-10-26T00:05:22.603Z",
+                "stale": false
+              }
+            ]
+          }
+        },
+        {
+          "name": "radar-catalog-and-tiles",
+          "status": "passed",
+          "durationMs": 9800,
+          "evidence": {
+            "product": "iem-n0q",
+            "source": "Iowa Environmental Mesonet / NWS Level III",
+            "sourceUrl": "https://mesonet.agron.iastate.edu/docs/nexrad_mosaic/",
+            "projection": "EPSG:3857",
+            "frameAgeMinutes": 5.5,
+            "tile": {
+              "z": 6,
+              "x": 13,
+              "y": 24
+            },
+            "images": [
+              {
+                "frameTime": "2026-10-25T23:55:00.000Z",
+                "retrievedAt": "2026-10-26T00:05:31.272Z",
+                "width": 256,
+                "height": 256,
+                "bitDepth": 8,
+                "colorType": 6,
+                "bytes": 22366,
+                "sha256": "15f6ec9d64ad88fe523b07d110691f504063b2d5094b36cb58c1850a9b48fc52",
+                "opacity": "Not decoded. An empty/transparent IEM radar tile cannot distinguish no echo from missing coverage."
+              },
+              {
+                "frameTime": "2026-10-26T00:00:00.000Z",
+                "retrievedAt": "2026-10-26T00:05:31.534Z",
+                "width": 256,
+                "height": 256,
+                "bitDepth": 8,
+                "colorType": 6,
+                "bytes": 23316,
+                "sha256": "239c2ab01eccd9f5da2b8d6bf046aad354633fba6ecca68683922721bcf93cb0",
+                "opacity": "Not decoded. An empty/transparent IEM radar tile cannot distinguish no echo from missing coverage."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "macos-verification/packaged-fixture.json": {
+      "status": "passed",
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "checks": [
+        {
+          "name": "packaged native window launches with current weather frame and normal sandbox",
+          "status": "passed",
+          "elapsedMs": 8000
+        },
+        {
+          "name": "packaged frame controls change actual frame and raster pixels",
+          "status": "passed",
+          "elapsedMs": 801
+        },
+        {
+          "name": "packaged preferences are saved through the UI and its own gateway",
+          "status": "passed",
+          "elapsedMs": 1488
+        },
+        {
+          "name": "fresh packaged process restores property and theme from disk",
+          "status": "passed",
+          "elapsedMs": 5952
+        },
+        {
+          "name": "native window close flushes the latest debounced preferences before destruction",
+          "status": "passed",
+          "elapsedMs": 3756
+        }
+      ]
+    },
+    "macos-verification/acceptance.json": {
+      "status": "passed",
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "version": "15.7.9"
+      },
+      "checks": [
+        {
+          "name": "source-tests",
+          "status": "passed",
+          "tests": 135
+        },
+        {
+          "name": "packaged-fixture",
+          "status": "passed",
+          "passed": true,
+          "checks": 5,
+          "scope": "packaged-fixture"
+        },
+        {
+          "name": "backend-live",
+          "status": "passed",
+          "passed": true,
+          "checks": 3,
+          "scope": "backend-live"
+        },
+        {
+          "name": "packaged-live",
+          "status": "passed",
+          "passed": true,
+          "checks": 7,
+          "scope": "packaged-live",
+          "sourceHealth": "within-startup-budgets",
+          "qualityWarnings": []
+        }
+      ],
+      "distributionReady": false,
+      "sourceHealth": "within-startup-budgets",
+      "qualityWarnings": []
+    },
+    "macos-release.json": {
+      "status": "passed",
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "version": "15.7.9"
+      },
+      "checks": [
+        {
+          "name": "source-tests",
+          "status": "passed",
+          "tests": 135
+        },
+        {
+          "name": "packaged-fixture",
+          "status": "passed",
+          "passed": true,
+          "checks": 5,
+          "scope": "packaged-fixture"
+        },
+        {
+          "name": "backend-live",
+          "status": "passed",
+          "passed": true,
+          "checks": 3,
+          "scope": "backend-live"
+        },
+        {
+          "name": "packaged-live",
+          "status": "passed",
+          "passed": true,
+          "checks": 7,
+          "scope": "packaged-live",
+          "sourceHealth": "within-startup-budgets",
+          "qualityWarnings": []
+        }
+      ],
+      "distributionReady": false,
+      "artifact": {
+        "filename": "Teller-Tactical-0.1.0-mac-arm64-DEVELOPER-NOT-NOTARIZED.zip",
+        "sha256": "8663907c043763a5b398a79d434b25e4a7ac85b0fd3746337377b0cbca1925d4",
+        "version": "0.1.0",
+        "architecture": "arm64"
+      },
+      "sourceHealth": "within-startup-budgets",
+      "qualityWarnings": []
+    }
+  },
+  "artifact": {
+    "githubArtifactId": 12619009605,
+    "githubArtifactUrl": "https://github.com/tylerptt129/rea/actions/runs/40247555425/artifacts/12619009605",
+    "outerArtifactDigest": "sha256:8947a268fde04a5a56ecc4b076d02abdcad6c7168f396704ef5ecc02ce916b48",
+    "innerApplicationZip": {
+      "filename": "Teller-Tactical-0.1.0-mac-arm64-DEVELOPER-NOT-NOTARIZED.zip",
+      "sha256": "8663907c043763a5b398a79d434b25e4a7ac85b0fd3746337377b0cbca1925d4",
+      "version": "0.1.0",
+      "architecture": "arm64"
+    }
+  },
+  "limitations": [
+    "Ad-hoc developer signing, not Developer ID or notarized distribution.",
+    "The public Colorado Springs native probe cell returned index0: no quantitative value; a nonzero live reflectivity sample was not observed.",
+    "Calibrated Mac navigation FPS,30-minute memory stability and physical sleep/wake were not measured in this run.",
+    "Full remote artifacts were not downloaded into this cloud because the redirect origin is blocked by its network policy."
+  ]
+}

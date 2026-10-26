@@ -1,7 +1,10 @@
 {
-  "source_commit": "632e121bb190cb76175ef182da975753537a11cb",
+  "source_commit": "360def1e3679acdde6c29312ff4ea7d5ae053f8b",
   "source_branch": "teller-tactical",
   "hosting_repository": "tylerptt129/rea",
   "hosting_branch": "teller-tactical-release",
-  "main_branch_changed": false
+  "main_branch_changed": false,
+  "verified_runtime_source_commit": "632e121bb190cb76175ef182da975753537a11cb",
+  "verified_hosting_commit": "17f51ffe5d29c310ee65231272dc0d6b12a32a91",
+  "verified_run_url": "https://github.com/tylerptt129/rea/actions/runs/40247555425"
 }

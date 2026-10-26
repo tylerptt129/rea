@@ -1,14 +1,41 @@
 # Release and first launch
 
-Primary target: Apple Silicon macOS (`darwin-arm64`). Local development runs on Linux x86_64; the authorized native acceptance workflow runs on actual `macos-15` Darwin/arm64. The application has launched there with hardware GPU rendering and real weather, but the complete release gate has not passed. Current probe/color-map additions require a new native run. No notarized user download is available; Linux success does not establish Mac behavior or Gatekeeper acceptance.
+Primary target: Apple Silicon macOS (`darwin-arm64`), macOS 13+. **Native core acceptance and user-local installation passed** on macOS 15.7.9 arm64 with the normal hardware GPU/security path. The delivered candidate is ad-hoc signed; `distributionReady:false`. Advanced features, calibrated performance/30-minute stability and notarized distribution remain separate unfinished work.
 
-## Current native release evidence
+## Accepted native build
 
-With explicit user authorization, source is hosted additively in `tylerptt129/rea` on branch `teller-tactical-release`, under `apps/teller-tactical`, alongside a branch-specific Mac workflow. REA main remains unchanged. The workflow was resumed with the user's explicit permission.
+[Run 40247555425](https://github.com/tylerptt129/rea/actions/runs/40247555425) completed **SUCCESS**, hosting commit `17f51ffe5d29c310ee65231272dc0d6b12a32a91`, canonical runtime source `632e121bb190cb76175ef182da975753537a11cb`. Source and the user-authorized workflow are additive in `tylerptt129/rea`, branch `teller-tactical-release`, under `apps/teller-tactical`; REA main remains unchanged. A final docs-only update changes no executable bytes.
 
-[Run 40244655567](https://github.com/tylerptt129/rea/actions/runs/40244655567) **failed overall** after demonstrating native launch, hardware GPU rendering, actual radar/visible/infrared satellite/NWS data and radar playback from a strictly fresh startup. Satellite legends returned HTTP 404, and catalog aging after startup also failed acceptance. New source color-map handling and explicit post-startup aging reports address these paths in code, but have not yet passed a new Mac run. Native-index N0Q radar probing is also newly integrated and not live-Mac validated.
+The run passed 135 source tests, 5 native fixture groups, 3 backend real-source groups and 7 packaged-live groups. Real recent radar/NWS/visible/IR, satellite legends, ASAR native probing, playback, refresh and 116-second interruption/recovery passed. User-local installation then passed, followed by 5 fixture groups on the installed copy. Source health was `within-startup-budgets`, `qualityWarnings:[]`; startup freshness limits remained 20 minutes for radar and 70 for satellite.
 
-The runner reported **zero valid code-signing identities**. Developer mode uses an ad-hoc signature, which does not establish Developer ID trust or notarization. No full-gate developer artifact or notarized distribution should be inferred from an earlier successful stage. Consult [VERIFICATION.md](VERIFICATION.md) for the current evidence boundary.
+The actual N0Q frame `202610260000` returned source index 0 → unavailable/null. No nonzero live measurement was observed; deterministic and packaged fixtures separately verified quantitative mapping. See [VERIFICATION.md](VERIFICATION.md) for this evidence boundary.
+
+The runner had **zero Developer ID identities**. Strict ad-hoc signatures passed, but no notarization or Gatekeeper distribution approval is claimed. Earlier failed candidates remain historical evidence; the accepted run above supersedes their unresolved integration status.
+
+## Recommended user-local installation
+
+On an Apple Silicon Mac, install Node.js 24.22.1+ (compatible newer versions are allowed), npm 11.16.0 and Git, then:
+
+```sh
+git clone --branch teller-tactical-release --single-branch https://github.com/tylerptt129/rea.git teller-tactical-mac
+cd teller-tactical-mac/apps/teller-tactical
+npm ci
+npm exec install-electron
+npm run install:mac
+```
+
+This route needs **no paid Apple account or Developer ID identity**. It builds/ad-hoc signs, runs native release gates, verifies a staged copy, preserves an existing installation as a timestamped backup, installs `~/Applications/Teller Tactical.app`, and opens it. Source failures stop the install; normal OS protections remain enabled. Only an exact already accepted bundle can be reused with `npm run install:mac -- --from-verified`. Add `--no-open` for automation or `--destination /absolute/user/directory` for another home/temporary location. The fixed report is `release/macos-verification/installed-local.json`.
+
+## Retained developer artifact
+
+[Download the native CI developer artifact](https://github.com/tylerptt129/rea/actions/runs/40247555425/artifacts/12619009605). The inner app archive is:
+
+```text
+Teller-Tactical-0.1.0-mac-arm64-DEVELOPER-NOT-NOTARIZED.zip
+SHA-256: 8663907c043763a5b398a79d434b25e4a7ac85b0fd3746337377b0cbca1925d4
+```
+
+This is a validated **developer artifact**, not a notarized general-download release. Normal macOS policy may reject a downloaded copy. Use the local source installation above; do not disable Gatekeeper, remove quarantine attributes or change security protections.
 
 ## Build from source
 
@@ -69,7 +96,7 @@ The Linux package does not substitute for a verified Mac release. An application
 4. Use the timeline to select a frame and start playback. Missing or stale products must remain visibly identified; the interface cannot turn a blocked feed into live data.
 5. Refresh, relaunch, and verify that preferences remain. Review data-source limitations in [data-sources.md](data-sources.md).
 
-The initial managed cloud proxy blocked required weather/reference destinations; native CI subsequently retrieved and rendered real weather sources. Use each run's actual diagnostics rather than applying the earlier proxy conclusion to another host. Until all required current-source native launch, legends/probe, playback, refresh and recovery checks pass, do not label this release ready for live use.
+The final native run passed the core live workflow and recovery checks. Continue checking actual source age/quality during use: a successful acceptance run does not guarantee future data freshness, coverage or availability. Earlier managed-cloud proxy failures retain their historical scope.
 
 ## Packaged-application fixture smoke test
 
@@ -129,15 +156,16 @@ Distribution mode additionally requires an existing installed `Developer ID Appl
 Do not check these boxes without current-run evidence. Update the capability matrix and task ledger with exact test results and paths.
 
 - [x] Locked installation and build pass.
-- [x] Current local integration passes 131 deterministic tests with zero failures/skips, the production build and 19 browser fixture groups; see VERIFICATION.md for scope.
+- [x] Final native source suite passes 135 tests; local production build and 19 browser fixture groups also passed; see VERIFICATION.md for scope.
 - [x] Real packaged Linux fixture application launches and screenshots are inspected; 5 native workflow groups passed.
-- [ ] Every visible control has a tested implementation; unfinished controls are omitted or honestly identified.
-- [x] Actual radar, visible/IR satellite and NWS source data rendered on native Apple Silicon in run 40244655567; this is partial progress, not full acceptance.
-- [ ] Live application loads, animates and refreshes real data successfully.
-- [ ] Offline startup, stale cache, interrupted download and reconnection behavior pass.
+- [x] Implemented core controls are exercised by browser/native workflows; advanced unfinished features remain explicitly listed in capabilities.md.
+- [x] Actual radar, visible/IR satellite and NWS source checks passed on native Apple Silicon in run 40247555425.
+- [x] Native live application loads, animates and refreshes actual source data.
+- [x] Fixture offline/stale-cache cases and native 116-second interruption/reconnection checks pass.
 - [x] Settings survive packaged relaunch, app-quit flush, and native window-close flush in isolated Linux fixture tests.
 - [x] Apple Silicon `.app` launches using the native hardware GPU path.
-- [ ] Current Apple Silicon `.app` passes complete core acceptance, including corrected legends/probes, refresh and recovery.
+- [x] Current Apple Silicon `.app` passes core acceptance, including legends, source-native probe semantics, refresh and recovery.
+- [x] User-local installation passes signature/hash checks; installed copy passes 5 native fixture groups.
 - [ ] Performance measurements are recorded on identified target hardware.
 - [ ] Optional derived tracking/nowcast capabilities have held-out validation before operational claims.
 - [ ] Signing/notarization and distribution verification are completed before claiming distribution readiness.

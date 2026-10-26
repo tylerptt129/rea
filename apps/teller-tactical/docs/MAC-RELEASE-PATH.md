@@ -1,14 +1,16 @@
 # Native Apple Silicon release path
 
-The release gate is executable rather than a claim that the current Linux-built archive works on a Mac. Linux cannot launch the Mach-O application, run `codesign`, evaluate Gatekeeper, or perform macOS notarization. No Mac, signing certificate, or notarization credential is exposed by the current tool/runtime configuration. The outbound-identity manifest contains no connections.
+Native Apple Silicon release, real packaged weather, user-local installation and copied-app relaunch all passed in [run40247555425](https://github.com/tylerptt129/rea/actions/runs/40247555425), on macOS15.7.9 arm64. The tested hosting commit is `17f51ffe5d29c310ee65231272dc0d6b12a32a91`; [recorded evidence](verification/native-mac-40247555425.json) retains the source commit, checks and artifact digest. Source health stayed within the startup budgets with no quality warnings.
 
-A read-only GitHub runner lookup at `api.github.com/repos/tylerptt129/rea/actions/runners` returned `Forbidden`. `GH_TOKEN` is present; that does not establish API or Actions authorization, and no additional token is requested on that evidence alone. A supported authorized API/network route must succeed before any hosted runner can be started. No repository, workflow run, paid runner or public release was created by this investigation.
+The Linux cloud cannot run Mac tools itself. The user authorized native GitHub Actions in the verified public fork `tylerptt129/rea`, on the additive `teller-tactical-release` branch. REA main remains untouched. Earlier `actions/runners` API lookup rejection was endpoint-specific; the existing scoped authentication successfully enabled, dispatched and inspected this workflow. No additional token or paid subscription was needed.
+
+The runner had zero valid distribution signing identities. The passing artifact is ad-hoc developer signed and not notarized. A local source build/install does not require a paid Apple account; a normal notarized downloaded distribution still requires existing Developer ID authority.
 
 ## Concrete runner choice
 
 The official [actions/runner-images table](https://github.com/actions/runner-images/blob/main/README.md), retrieved during this task, lists **`macos-15` as arm64**; `macos-15-intel` is x64. The workflow uses explicit `macos-15` and checks both `uname` and Node runtime architecture so label changes, Rosetta, or an Intel runner cannot silently pass. `macos-latest` is deliberately not relied upon. Source text need not be copied into the app; the runner facts are independently checked at execution.
 
-`.github/workflows/macos-release.yml` is a **manual-only standalone-app workflow**. Root-repository integration may place the app under a dedicated application directory and set that working directory in an additive branch workflow. Preserve REA's existing default branch and CI. The agent must not infer a new repository or run billed infrastructure without the user's authorized route.
+`.github/workflows/macos-release.yml` is a **manual-only standalone-app workflow**. The active root-repository integration is `.github/workflows/teller-macos-release.yml`, with `apps/teller-tactical` as its working directory on the additive release branch. Preserve REA's existing default branch and CI. The agent must not infer a new repository or run billed infrastructure without the user's authorized route.
 
 ## Exact commands
 
@@ -38,7 +40,7 @@ node scripts/verify-mac.mjs \
   --report '/absolute/path/mac-acceptance.json'
 ```
 
-Neither command can honestly pass on this Linux host. Preparing and testing their rejection/policy logic does not substitute for running them on macOS.
+These commands passed on the native Mac runner. They correctly reject this Linux host. `npm run install:mac` additionally stages and verifies the accepted bundle under `~/Applications`, preserves an existing app backup, and opens it with normal macOS protections.
 
 ## Distribution with normal macOS protections
 
@@ -64,10 +66,10 @@ The manual workflow allows distribution only on an explicitly authorized self-ho
 
 Reports are saved under `release/macos-verification/` and `release/macos-release.json`. Artifact collection runs on failure so a failed live source is visible rather than silently skipped. The original app/personal profile is never the acceptance test profile.
 
-Still required outside this Linux machine:
+Execution and remaining prerequisites:
 
-1. An authorized actual macOS ARM64 execution route: the user-approved GitHub repository/runner or an attached/remote Mac.
-2. Working public-source network access on the runner and current real source responses. The cloud's saved domain draft has not established that access.
+1. Native execution: fulfilled by the user-approved Apple Silicon GitHub runner and recorded successful run.
+2. Real source access: fulfilled on the Mac runner. The Linux cloud's network draft remains separate and must be applied through environment settings before cloud-origin live checks can work.
 3. For downloaded distribution only, the authorized preconfigured Developer ID/notary keychain. Local developer verification does not require purchasing or inventing this identity.
 4. Physical target Mac interaction/high-DPI/sleep and sustained performance verification; CI/virtual-Mac success alone does not establish the user's personal GPU and display behavior.
 

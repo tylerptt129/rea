@@ -1,65 +1,59 @@
 # Verification record
 
-## Native Apple Silicon progress
+## Successful native Apple Silicon acceptance
 
-The user authorized and resumed a native `macos-15` GitHub Actions workflow on the additive `teller-tactical-release` branch of `tylerptt129/rea`, with the independent application in `apps/teller-tactical`. REA main remains unchanged.
+[Run 40247555425](https://github.com/tylerptt129/rea/actions/runs/40247555425) completed **SUCCESS** on **macOS 15.7.9 arm64**, hosting commit `17f51ffe5d29c310ee65231272dc0d6b12a32a91`. Canonical runtime source: `632e121bb190cb76175ef182da975753537a11cb`. Source is hosted additively in `tylerptt129/rea`, branch `teller-tactical-release`, under `apps/teller-tactical`; REA main remains unchanged.
 
-[Run 40244655567](https://github.com/tylerptt129/rea/actions/runs/40244655567) **failed overall**. Its executed native checks established:
+| Executed check | Result |
+| --- | --- |
+| Source tests on native Mac | 135 passed |
+| Packaged native fixture workflow | 5 groups passed |
+| Backend real-source checks | 3 groups passed |
+| Packaged live workflow | 7 groups passed |
+| User-local installation | Passed; copied signature and executable/ASAR fingerprints verified |
+| Installed application's native fixture workflow | 5 groups passed |
 
-- The packaged application launched on Darwin/arm64 using the target hardware GPU path.
-- Actual radar, visible/infrared satellite textures and NWS data rendered after a strictly fresh startup.
-- Radar frame selection/playback changed real accepted source-frame identities.
+The packaged-live workflow exercised the normal hardware GPU/security path, actual recent IEM radar, NWS data and NASA GIBS visible/IR textures/legends, the source-native ASAR probe worker, playback, refresh and **116 seconds of interruption/recovery**. Final source health was **`within-startup-budgets`**, **`qualityWarnings:[]`**. Startup budgets remained **20 minutes for radar / 70 minutes for satellite**. Subsequent aging retains original times and must become visibly stale/unavailable; source health describes this run, not perpetual freshness.
 
-The same run exposed missing satellite legends returning HTTP 404 and catalog aging after the fresh startup. Passing earlier checks does not turn this into a passing release gate. The native runner reported **zero valid code-signing identities**; the current route can produce an ad-hoc developer candidate, not a Developer ID/notarized download.
+### Numerical-probe evidence boundary
 
-## Current source changes awaiting native revalidation
+The actual N0Q frame was `202610260000`; the native source index was `0`, yielding **unavailable/null** with explicit missing/no-quantitative-value semantics. **No nonzero live numerical value was observed.** The live run establishes real archive/worldfile access, ASAR worker operation and the index-zero result. Deterministic and packaged fixture tests separately verify quantized mapping (including indices 65 → 0 dBZ and 255 → 95 dBZ), coordinate registration and cache provenance. Rendered RGB colors are never inverted into measurements.
 
-- Satellite discovery now accepts provider-advertised GIBS color-map metadata and renders source labels/colors/units when a supported image legend is absent. This addresses the missing-legend integration path in source; live Mac legend output still needs verification.
-- IEM N0Q probing now reads original indexed PNG values with the archive worldfile, using a bounded worker rather than display-color inversion. Samples retain source/cell/time provenance, 0.5 dBZ quantization and composite limitations; index zero remains nonquantitative. This new path has not passed live Mac acceptance.
-- Native acceptance retains a verified-fresh startup baseline, then checks that later source aging stays visible and produces explicit quality warnings. It preserves observation times and startup freshness budgets. The integrated behavior requires a fresh native run.
+### Package and installation trust
 
-## Current local integration validation
+The native runner reported **zero Developer ID code-signing identities**. Ad-hoc bundle signatures passed strict verification, including after installation. **`distributionReady:false`**: no Developer ID notarization, stapling or Gatekeeper distribution acceptance is claimed. The user-local source route needs no paid Apple account and preserves security protections.
 
-The integrated source passed the following local checks:
+Validated [developer artifact](https://github.com/tylerptt129/rea/actions/runs/40247555425/artifacts/12619009605), inner archive:
 
-- `npm test`: **135 passed**, zero failed/skipped.
-- `npm run build`: production build passed.
-- `npm run test:ui`: **19/19 browser fixture acceptance groups passed**, completed **2026-10-25T23:52:06.336Z**.
+```text
+Teller-Tactical-0.1.0-mac-arm64-DEVELOPER-NOT-NOTARIZED.zip
+SHA-256: 8663907c043763a5b398a79d434b25e4a7ac85b0fd3746337377b0cbca1925d4
+```
 
-These are local integration results, including deterministic contracts and explicitly synthetic browser fixtures. They do not establish a passing current-source live Mac gate, native Mac probing, or notarized distribution. Keep older archived outputs below separate from this run.
+## Local and earlier retained evidence
 
-## Earlier retained validation
+Local production build and **19/19 browser fixture acceptance groups** passed (browser completion `2026-10-25T23:52:06.336Z`). The final native source suite above ran 135 tests. Deterministic fixtures, browser interactions, native fixtures and real-source checks have separate scopes; none is relabeled as another.
 
-- Pinned Node 24.22.1/npm 11.16.0 installation, frozen lockfile reinstall and production Vite build including the MapLibre worker asset were exercised.
-- Deterministic contracts and browser fixture acceptance passed at earlier revisions. Archived outputs: `verification/unit-tests.txt` and `verification/ui-smoke.json`. Keep their revision/time scope separate from subsequent changes.
-- REA `inspect-electron-fuses` inspected the actual downloaded Electron ELF; retained Evidence includes artifact digest and observed fuse states. This is a real REA operation, not WSV3 investigation.
-- Linux and Apple Silicon packages were generated on Linux. Native Linux fixture checks exercised real pixels, sandboxed launch, preferences, relaunch and quit/window-close flush; records are in `verification/packaged-linux.json` and `verification/packaged-linux-harness.json`. Software rendering and its limits are documented in RELEASE.md/PERFORMANCE.md.
+Earlier Linux package checks established normal sandbox launch, fixture pixels, preference relaunch and quit/window-close flush using software rendering. Archived reports include `verification/packaged-linux.json`, `verification/packaged-linux-harness.json` and `verification/packaged-asar-probe-linux.json`. Earlier unit/browser outputs remain revision-scoped. REA inspected the actual downloaded Electron ELF fuses; retained artifact/digest Evidence proves a REA operation, not WSV3 investigation.
 
-The initial managed cloud proxy rejected required public destinations with HTTP 403. That historical limitation does not describe the native CI source access demonstrated above. Native run failures must be diagnosed from that run's actual responses and stage reports.
+Run `40244655567` failed on satellite legend HTTP 404 and post-startup aging. Run `40247212859` failed a strict repeated-probe retrieval-time comparison, revealing a 20 ms fresh/cache timestamp discrepancy. The final run passed after source color-map handling, explicit aging reports and stable committed cache provenance were corrected. Startup freshness budgets and the provenance assertion were retained. Initial managed-cloud HTTP 403 failures do not describe the final Mac's actual source access.
 
-## Not established
+## Remaining verification
 
-A complete successful live Mac release gate for the current source; live Mac native-index probing and color-map legends; prolonged playback stability; physical sleep/wake; user-hardware high-DPI/GPU performance; comparative accuracy/performance; Developer ID signing, notarization, stapling and Gatekeeper distribution acceptance; WSV3 observable/binary behavior; raw single-site velocity/dual polarization; validated tracking/nowcasting.
+Calibrated Mac frame-rate/CPU/memory benchmarks, a 30-minute playback soak, physical sleep/wake, broader user-hardware/high-DPI checks, comparative accuracy/performance and a nonzero live quantitative probe remain unverified. Raw single-site velocity/dual polarization, terrain 3D, model maps and validated tracking/nowcasting are not delivered. WSV3 observable/binary behavior remains unknown where source access or an authorized executable is absent. Notarized distribution remains outstanding.
 
-## Commands
+## Reproduce
+
+On Apple Silicon macOS 13+ with Node.js 24.22.1+ and pinned npm dependencies:
 
 ```sh
 npm ci
 npm exec install-electron
-npm run build
-npm test
-npm run test:ui
-npm run test:live
-npm run package:mac
-npm run package:linux
-# Native Apple Silicon only; builds, ad-hoc signs, and runs required acceptance:
+npm run install:mac
+# Or rerun native release gates without installing:
 npm run release:mac -- --mode developer
+# Reuse only an exact already accepted bundle:
+npm run install:mac -- --from-verified --no-open
 ```
 
-Use current-instance tool activation from README.md/RELEASE.md on this managed Linux host. Fixtures are explicit. Live runners select `fixture:false` and fresh profiles/caches; source failures, quality warnings, skipped/unrun stages and passed assertions remain distinct. An ad-hoc developer result can never establish notarized distribution.
-
-## Packaged source-native probe compatibility
-
-The current Linux Electron package passed a separately labeled synthetic ASAR worker integration check with the normal sandbox. The worker loaded from `app.asar`, read registered native indices 65 → 0 dBZ, 255 → 95 dBZ, and 0 → unavailable, and reused validated source bytes without retiming retrievals. This establishes packaged worker compatibility on Linux, not live-source behavior or Mac accuracy. Retained evidence: [packaged-asar-probe-linux.json](verification/packaged-asar-probe-linux.json).
-
-Native candidate [40247212859](https://github.com/tylerptt129/rea/actions/runs/40247212859), hosting commit `c4f2a1138956c1da4a7da40253cb03a2a51784ae`, failed at the repeated native sample provenance check. The real ASAR worker returned a valid source-native sample, but fresh and cached responses differed in retrieval time by 20 ms. The shared cache now returns its original committed retrieval timestamp to the first caller; a deterministic fresh/cache/restart regression passes. The strict native assertion is unchanged and requires another run. Installation and later live stages were not reached.
+The installer emits `release/macos-verification/installed-local.json`. Native release reports/screenshots remain in `release/macos-verification/`, with `release/macos-release.json` as the release summary. The final handoff's documentation-only update changes no executable code and does not require a redundant native run for those same bytes.
