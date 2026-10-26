@@ -55,6 +55,7 @@ export class DiskCache {
       this.entries.set(key, entry);
       this.size += data.length;
       await this.evict();
+      return { retrievedAt: new Date(entry.retrievedMs).toISOString() };
     };
     this.serial = this.serial.then(action, action);
     return this.serial;

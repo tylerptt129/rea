@@ -19,7 +19,7 @@ Full scope: [REQUEST.md](REQUEST.md). REA remains the existing fork **tylerptt12
 - Newly integrated numerical probing of original IEM N0Q indexed PNG cells using source worldfiles. It reports native 0.5 dBZ classes, nominal mosaic time, cell registration and limitations; index zero has no quantitative value. This is a provider composite, not raw single-site radar or display-color inversion.
 - Newly integrated satellite legends derived from provider-advertised GIBS color-map metadata when the source advertises no supported legend image. Source labels, units and colors are preserved; no synthetic physical mapping is invented.
 
-The probe and color-map additions have not yet been validated in a new live Mac run. The current local integration run passed `npm test` with 134 tests, zero failures/skips, `npm run build`, and all 19 browser fixture acceptance groups (completed 2026-10-25T23:52:06.336Z). These results include the integrated source but do not establish live Mac behavior. Earlier Linux packaged results retain their original scope.
+The probe and color-map additions have not yet been validated in a new live Mac run. The current local integration run passed `npm test` with 135 tests, zero failures/skips, `npm run build`, and all 19 browser fixture acceptance groups (completed 2026-10-25T23:52:06.336Z). These results include the integrated source but do not establish live Mac behavior. Earlier Linux packaged results retain their original scope.
 
 ### Native Mac progress
 
@@ -35,7 +35,7 @@ REA performed a real Electron fuse inspection; [evidence](evidence/rea-electron-
 
 ### Outstanding
 
-1. Retain the completed local integration evidence (134 deterministic tests, production build and 19 browser fixture groups); do not relabel older archived results as the current run.
+1. Retain the completed local integration evidence (135 deterministic tests, production build and 19 browser fixture groups); do not relabel older archived results as the current run.
 2. Publish the completed application changes to the authorized additive branch and run native Apple Silicon acceptance again. Confirm source legends, native-cell probes, refresh, outage recovery and visible aging with real sources.
 3. Keep startup freshness budgets strict. An observation that ages during a test must retain its time and become visibly stale/unavailable; a passed fresh startup does not establish later source freshness.
 4. Complete target high-DPI/GPU/performance and prolonged-playback evidence, including physical sleep/wake where applicable. Short CI execution is not a user-hardware benchmark.

@@ -62,6 +62,25 @@ test('interrupted source falls back to stale bytes with original retrieval time'
   assert.equal(result.stale,true); assert.equal(result.data.real,true); assert.equal(result.retrievedAt,new Date(1000).toISOString());
 });
 
+test('first source response, cached repeat and restored cache share one retrieval timestamp', async t => {
+  const directory = await temporary(t); let now = 1000, calls = 0;
+  const cache = new DiskCache(directory, { now: () => now });
+  const fetchImpl = async () => { calls++; return new Response('{"accepted":true}', { headers: { 'content-type': 'application/json' } }); };
+  const client = new WeatherClient({ cache, fetchImpl }); t.after(() => client.close());
+  const url = 'https://api.weather.gov/retrieval-provenance';
+  const first = await client.json(url);
+  now = 1050;
+  const repeated = await client.json(url);
+  const restored = new WeatherClient({ cache: new DiskCache(directory, { now: () => now }), fetchImpl }); t.after(() => restored.close());
+  const afterRestart = await restored.json(url);
+  for (const result of [first, repeated, afterRestart]) {
+    assert.equal(result.retrievedAt, new Date(1000).toISOString());
+    assert.equal(result.sourceUrl, url); assert.equal(result.stale, false);
+    assert.deepEqual(result.data, { accepted: true });
+  }
+  assert.equal(calls, 1);
+});
+
 test('malformed input and oversized responses fail without entering the accepted cache', async t => {
   const client = new WeatherClient({ directory: await temporary(t), attempts: 1, fetchImpl: async () => new Response('not-json', { headers: { 'content-type': 'application/json' } }) });
   t.after(() => client.close());

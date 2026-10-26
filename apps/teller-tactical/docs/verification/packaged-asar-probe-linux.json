@@ -1,0 +1,246 @@
+{
+  "label": "SYNTHETIC FIXTURE — packaged Linux ASAR worker compatibility only; no live weather or macOS evidence",
+  "executable": "/workspace/teller-tactical/release/Teller Tactical-linux-x64/Teller Tactical",
+  "startedAt": "2026-10-25T23:59:19.187Z",
+  "status": "passed",
+  "result": {
+    "packaged": true,
+    "appPath": "/workspace/teller-tactical/release/Teller Tactical-linux-x64/resources/app.asar",
+    "moduleUrl": "file:///workspace/teller-tactical/release/Teller%20Tactical-linux-x64/resources/app.asar/server/radar-probe.mjs",
+    "workerUrl": "file:///workspace/teller-tactical/release/Teller%20Tactical-linux-x64/resources/app.asar/server/radar-probe-worker.mjs",
+    "electron": "45.0.0",
+    "node": "24.22.0",
+    "platform": "linux",
+    "arch": "x64",
+    "sandboxDisabled": false,
+    "windows": [
+      {
+        "sandbox": true,
+        "contextIsolation": true,
+        "nodeIntegration": false
+      }
+    ],
+    "elapsedMs": 74,
+    "first": {
+      "available": true,
+      "value": 0,
+      "units": "dBZ",
+      "nativeIndex": 65,
+      "sourceUrl": "https://mesonet.agron.iastate.edu/archive/data/2026/01/15/GIS/uscomp/n0q_202601151830.png",
+      "worldfileUrl": "https://mesonet.agron.iastate.edu/archive/data/2026/01/15/GIS/uscomp/n0q_202601151830.wld",
+      "retrievedAt": "2026-10-25T23:59:19.689Z",
+      "stale": false,
+      "cell": {
+        "column": 1,
+        "row": 0,
+        "width": 3,
+        "height": 2,
+        "center": {
+          "longitude": -104.99,
+          "latitude": 39
+        },
+        "bounds": {
+          "west": -104.995,
+          "east": -104.985,
+          "south": 38.995,
+          "north": 39.005
+        },
+        "corners": [
+          {
+            "longitude": -104.995,
+            "latitude": 39.005
+          },
+          {
+            "longitude": -104.985,
+            "latitude": 39.005
+          },
+          {
+            "longitude": -104.985,
+            "latitude": 38.995
+          },
+          {
+            "longitude": -104.995,
+            "latitude": 38.995
+          }
+        ],
+        "resolution": {
+          "projection": "EPSG:4326",
+          "units": "degrees",
+          "columnVector": [
+            0.01,
+            0
+          ],
+          "rowVector": [
+            0,
+            -0.01
+          ]
+        },
+        "sampling": "nearest native pixel center; no spatial interpolation"
+      },
+      "latitude": 39,
+      "longitude": -104.99,
+      "observationTime": "2026-01-15T18:30:00.000Z",
+      "quantizationDbz": 0.5,
+      "limitations": [
+        "Quantized IEM provider composite, not raw single-site radar or a vertical reflectivity profile.",
+        "Source mosaic time is nominal; contributing radar inputs may be up to15 minutes old.",
+        "Terrain blockage, beam overshoot, attenuation, clutter processing and missing source coverage limit interpretation.",
+        "Index0 has no quantitative value; it cannot establish no precipitation or distinguish missing coverage."
+      ],
+      "worldfileRetrievedAt": "2026-10-25T23:59:19.661Z",
+      "quality": "provider-composite quantized native index",
+      "timeSemantics": "nominal provider mosaic time"
+    },
+    "maximum": {
+      "available": true,
+      "value": 95,
+      "units": "dBZ",
+      "nativeIndex": 255,
+      "sourceUrl": "https://mesonet.agron.iastate.edu/archive/data/2026/01/15/GIS/uscomp/n0q_202601151830.png",
+      "worldfileUrl": "https://mesonet.agron.iastate.edu/archive/data/2026/01/15/GIS/uscomp/n0q_202601151830.wld",
+      "retrievedAt": "2026-10-25T23:59:19.688Z",
+      "stale": false,
+      "cell": {
+        "column": 2,
+        "row": 0,
+        "width": 3,
+        "height": 2,
+        "center": {
+          "longitude": -104.98,
+          "latitude": 39
+        },
+        "bounds": {
+          "west": -104.985,
+          "east": -104.975,
+          "south": 38.995,
+          "north": 39.005
+        },
+        "corners": [
+          {
+            "longitude": -104.985,
+            "latitude": 39.005
+          },
+          {
+            "longitude": -104.975,
+            "latitude": 39.005
+          },
+          {
+            "longitude": -104.975,
+            "latitude": 38.995
+          },
+          {
+            "longitude": -104.985,
+            "latitude": 38.995
+          }
+        ],
+        "resolution": {
+          "projection": "EPSG:4326",
+          "units": "degrees",
+          "columnVector": [
+            0.01,
+            0
+          ],
+          "rowVector": [
+            0,
+            -0.01
+          ]
+        },
+        "sampling": "nearest native pixel center; no spatial interpolation"
+      },
+      "latitude": 39,
+      "longitude": -104.98,
+      "observationTime": "2026-01-15T18:30:00.000Z",
+      "quantizationDbz": 0.5,
+      "limitations": [
+        "Quantized IEM provider composite, not raw single-site radar or a vertical reflectivity profile.",
+        "Source mosaic time is nominal; contributing radar inputs may be up to15 minutes old.",
+        "Terrain blockage, beam overshoot, attenuation, clutter processing and missing source coverage limit interpretation.",
+        "Index0 has no quantitative value; it cannot establish no precipitation or distinguish missing coverage."
+      ],
+      "worldfileRetrievedAt": "2026-10-25T23:59:19.656Z",
+      "quality": "provider-composite quantized native index",
+      "timeSemantics": "nominal provider mosaic time"
+    },
+    "missing": {
+      "available": false,
+      "value": null,
+      "units": "dBZ",
+      "nativeIndex": 0,
+      "sourceUrl": "https://mesonet.agron.iastate.edu/archive/data/2026/01/15/GIS/uscomp/n0q_202601151830.png",
+      "worldfileUrl": "https://mesonet.agron.iastate.edu/archive/data/2026/01/15/GIS/uscomp/n0q_202601151830.wld",
+      "retrievedAt": "2026-10-25T23:59:19.688Z",
+      "stale": false,
+      "cell": {
+        "column": 0,
+        "row": 1,
+        "width": 3,
+        "height": 2,
+        "center": {
+          "longitude": -105,
+          "latitude": 38.99
+        },
+        "bounds": {
+          "west": -105.005,
+          "east": -104.995,
+          "south": 38.985,
+          "north": 38.995
+        },
+        "corners": [
+          {
+            "longitude": -105.005,
+            "latitude": 38.995
+          },
+          {
+            "longitude": -104.995,
+            "latitude": 38.995
+          },
+          {
+            "longitude": -104.995,
+            "latitude": 38.985
+          },
+          {
+            "longitude": -105.005,
+            "latitude": 38.985
+          }
+        ],
+        "resolution": {
+          "projection": "EPSG:4326",
+          "units": "degrees",
+          "columnVector": [
+            0.01,
+            0
+          ],
+          "rowVector": [
+            0,
+            -0.01
+          ]
+        },
+        "sampling": "nearest native pixel center; no spatial interpolation"
+      },
+      "latitude": 38.99,
+      "longitude": -105,
+      "observationTime": "2026-01-15T18:30:00.000Z",
+      "quantizationDbz": 0.5,
+      "limitations": [
+        "Quantized IEM provider composite, not raw single-site radar or a vertical reflectivity profile.",
+        "Source mosaic time is nominal; contributing radar inputs may be up to15 minutes old.",
+        "Terrain blockage, beam overshoot, attenuation, clutter processing and missing source coverage limit interpretation.",
+        "Index0 has no quantitative value; it cannot establish no precipitation or distinguish missing coverage."
+      ],
+      "worldfileRetrievedAt": "2026-10-25T23:59:19.656Z",
+      "reason": "The provider pixel has no quantitative value; missing coverage and no echo cannot be distinguished."
+    },
+    "calls": [
+      "https://mesonet.agron.iastate.edu/archive/data/2026/01/15/GIS/uscomp/n0q_202601151830.png",
+      "https://mesonet.agron.iastate.edu/archive/data/2026/01/15/GIS/uscomp/n0q_202601151830.wld"
+    ],
+    "stats": {
+      "networkRequests": 2,
+      "downloadedBytes": 876,
+      "cacheHits": 4,
+      "staleFallbacks": 0,
+      "failures": 0
+    },
+    "workerThreadId": 1
+  }
+}

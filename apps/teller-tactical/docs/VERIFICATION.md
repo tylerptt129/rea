@@ -22,7 +22,7 @@ The same run exposed missing satellite legends returning HTTP 404 and catalog ag
 
 The integrated source passed the following local checks:
 
-- `npm test`: **134 passed**, zero failed/skipped.
+- `npm test`: **135 passed**, zero failed/skipped.
 - `npm run build`: production build passed.
 - `npm run test:ui`: **19/19 browser fixture acceptance groups passed**, completed **2026-10-25T23:52:06.336Z**.
 
@@ -57,3 +57,9 @@ npm run release:mac -- --mode developer
 ```
 
 Use current-instance tool activation from README.md/RELEASE.md on this managed Linux host. Fixtures are explicit. Live runners select `fixture:false` and fresh profiles/caches; source failures, quality warnings, skipped/unrun stages and passed assertions remain distinct. An ad-hoc developer result can never establish notarized distribution.
+
+## Packaged source-native probe compatibility
+
+The current Linux Electron package passed a separately labeled synthetic ASAR worker integration check with the normal sandbox. The worker loaded from `app.asar`, read registered native indices 65 → 0 dBZ, 255 → 95 dBZ, and 0 → unavailable, and reused validated source bytes without retiming retrievals. This establishes packaged worker compatibility on Linux, not live-source behavior or Mac accuracy. Retained evidence: [packaged-asar-probe-linux.json](verification/packaged-asar-probe-linux.json).
+
+Native candidate [40247212859](https://github.com/tylerptt129/rea/actions/runs/40247212859), hosting commit `c4f2a1138956c1da4a7da40253cb03a2a51784ae`, failed at the repeated native sample provenance check. The real ASAR worker returned a valid source-native sample, but fresh and cached responses differed in retrieval time by 20 ms. The shared cache now returns its original committed retrieval timestamp to the first caller; a deterministic fresh/cache/restart regression passes. The strict native assertion is unchanged and requires another run. Installation and later live stages were not reached.

@@ -90,6 +90,7 @@ jobs:
                   parts.extend([command.get('stderrTail','')[-1800:],command.get('stdoutTail','')[-1800:]])
               parts.extend(str(item) for item in value.get('consoleErrors',[])[:6])
               if value.get('resourceFailures'):parts.append(str(value['resourceFailures'][:8]))
+              if value.get('nativeProbe'):parts.append('nativeProbe='+json.dumps(value['nativeProbe']))
               snap=value.get('failureSnapshot') or {}
               if snap:parts.append(str({'frame':snap.get('frameLabel'),'panes':snap.get('paneLabels')}))
               runtime=value.get('runtimeOnFailure') or {}

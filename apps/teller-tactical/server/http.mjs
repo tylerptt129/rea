@@ -131,8 +131,9 @@ export class WeatherClient {
           const contentType = response.headers.get('content-type') ?? 'application/octet-stream';
           const facts = await this.admit(data, contentType, { category, maxBytes, image, format, admission, signal, url });
           // Source validity is established before replacing the last accepted bytes.
-          await this.cache.put(url, data, { ttl, contentType, category });
-          return { data, contentType, retrievedAt: new Date().toISOString(), stale: false, sourceUrl: url, ...facts };
+          const retrievedAt = new Date().toISOString();
+          const stored = await this.cache.put(url, data, { ttl, contentType, category });
+          return { data, contentType, retrievedAt: stored?.retrievedAt ?? retrievedAt, stale: false, sourceUrl: url, ...facts };
         } catch (error) {
           if (signal.aborted || error.retryable === false || /HTTP 4\d\d|byte limit|empty response/.test(error.message) && !error.retryable || attempt + 1 >= this.attempts) throw error;
           await wait(250 * (2 ** attempt), signal);
